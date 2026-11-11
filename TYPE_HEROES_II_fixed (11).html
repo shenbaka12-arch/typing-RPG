@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TYPE HEROES II - タイピングヒーローズ II</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Fira+Code:wght@600;700&family=Noto+Sans+JP:wght@600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        pixel: ['DotGothic16', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                        sans: ['Noto Sans JP', 'sans-serif']
+                    },
+                    keyframes: {
+                        rainbow: {
+                            '0%, 100%': { 'border-color': '#ff007f', 'box-shadow': '0 0 15px #ff007f' },
+                            '33%': { 'border-color': '#00f0ff', 'box-shadow': '0 0 15px #00f0ff' },
+                            '66%': { 'border-color': '#ffaa00', 'box-shadow': '0 0 15px #ffaa00' }
+                        },
+                        popIn: {
+                            '0%': { transform: 'scale(0.5)', opacity: '0' },
+                            '80%': { transform: 'scale(1.1)', opacity: '1' },
+                            '100%': { transform: 'scale(1)', opacity: '1' }
+                        }
+                    },
+                    animation: {
+                        rainbow: 'rainbow 3s linear infinite',
+                        popIn: 'popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #090d16;
+            color: #f8fafc;
+            font-family: 'Noto Sans JP', sans-serif;
+            user-select: none;
+        }
+        .pixel-box {
+            box-shadow: inset -4px -4px 0px 0px rgba(0,0,0,0.5), inset 4px 4px 0px 0px rgba(255,255,255,0.2);
+        }
+        .rainbow-card {
+            background: linear-gradient(135deg, rgba(255,0,128,0.25), rgba(0,240,255,0.25), rgba(255,215,0,0.25));
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), inset 0 0 15px rgba(255, 255, 255, 0.3);
+            animation: rainbow 4s linear infinite;
+        }
+        .char-typed { color: #10b981; text-shadow: 0 0 8px rgba(16,185,129,0.6); }
+        .char-current { color: #38bdf8; background-color: rgba(56,189,248,0.25); border-bottom: 2px solid #38bdf8; }
+        .char-untyped { color: #64748b; }
+        .char-error { color: #f43f5e; background-color: rgba(244,63,94,0.3); }
+
+        /* 段位カード 豪華さ段階 */
+        .tier-kyu {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid #475569;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .tier-zenhan {
+            background: linear-gradient(145deg, #1e3a5f, #0f172a);
+            border: 1px solid #3b82f6;
+            box-shadow: 0 0 12px rgba(59,130,246,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+        .tier-kouhan {
+            background: linear-gradient(145deg, #3b1d6d, #0f172a);
+            border: 1px solid #a855f7;
+            box-shadow: 0 0 16px rgba(168,85,247,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        .tier-kuro {
+            background: linear-gradient(145deg, #1a1a2e, #16213e 50%, #0f3460);
+            border: 2px solid #64748b;
+            box-shadow: 0 0 18px rgba(100,116,139,0.4), inset 0 0 20px rgba(255,255,255,0.05);
+        }
+        .tier-meijin {
+            background: linear-gradient(145deg, #3b2f0b, #1a1405);
+            border: 2px solid #eab308;
+            box-shadow: 0 0 20px rgba(234,179,8,0.45), inset 0 0 15px rgba(250,204,21,0.15);
+        }
+        .tier-chojin {
+            background: linear-gradient(145deg, #4c1d95, #1e1b4b 40%, #0f172a);
+            border: 2px solid #c084fc;
+            box-shadow: 0 0 24px rgba(192,132,252,0.5), inset 0 0 20px rgba(167,139,250,0.2);
+        }
+        .tier-tatsujin {
+            background: linear-gradient(145deg, #7f1d1d, #1c1917 50%, #450a0a);
+            border: 2px solid #f87171;
+            box-shadow: 0 0 28px rgba(248,113,113,0.5), inset 0 0 25px rgba(252,165,165,0.15);
+        }
+        .tier-god {
+            background: linear-gradient(135deg, #831843, #4c1d95, #0e7490, #854d0e);
+            background-size: 300% 300%;
+            animation: godShimmer 6s ease infinite;
+            border: 2px solid #fde68a;
+            box-shadow: 0 0 32px rgba(253,224,71,0.6), 0 0 60px rgba(236,72,153,0.3), inset 0 0 30px rgba(255,255,255,0.15);
+        }
+        @keyframes godShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .card-shine {
+            position: relative;
+            overflow: hidden;
+        }
+        .card-shine::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
+            animation: shineSweep 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes shineSweep {
+            0% { transform: translateX(-30%) rotate(25deg); }
+            100% { transform: translateX(30%) rotate(25deg); }
+        }
+        .miss-bar-wrap {
+            height: 12px;
+            border-radius: 999px;
+            background: #0f172a;
+            border: 1px solid #4c1d1d;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+        }
+        .miss-bar-fill {
+            height: 100%;
+            width: 100%;
+            border-radius: 999px;
+            transition: width 0.25s ease, background 0.25s ease;
+            background: linear-gradient(90deg, #fb7185, #f43f5e);
+            box-shadow: 0 0 10px rgba(244,63,94,0.45);
+        }
+        .miss-bar-fill.warn {
+            background: linear-gradient(90deg, #fdba74, #f97316);
+            box-shadow: 0 0 10px rgba(249,115,22,0.45);
+        }
+        .miss-bar-fill.danger {
+            background: linear-gradient(90deg, #f87171, #b91c1c);
+            box-shadow: 0 0 12px rgba(185,28,28,0.6);
+            animation: missPulse 0.6s ease-in-out infinite;
+        }
+        @keyframes missPulse {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.35); }
+        }
+        .result-gauge-wrap {
+            height: 14px;
+            border-radius: 999px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            overflow: hidden;
+        }
+        .result-gauge-fill {
+            height: 100%;
+            width: 100%;
+            border-radius: 999px;
+            transition: width 0.05s linear;
+            background: linear-gradient(90deg, #f59e0b, #ef4444);
+        }
+        .result-gauge-fill.rainbow {
+            background: linear-gradient(90deg, #ff007f, #00f0ff, #ffaa00, #ff007f);
+            background-size: 200% 100%;
+            animation: gaugeRainbow 2s linear infinite;
+            box-shadow: 0 0 12px rgba(255,0,127,0.6);
+        }
+        @keyframes gaugeRainbow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+        .badge-glow-pulse {
+            animation: badgePulse 0.8s ease-in-out 3;
+        }
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.08); filter: brightness(1.4); }
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen justify-between p-3 md:p-6 bg-slate-950 text-slate-100">
+
+    <!-- ヘッダーUI -->
+    <header class="max-w-4xl mx-auto w-full flex flex-wrap justify-between items-center bg-slate-900/90 border border-slate-800 p-4 rounded-2xl mb-4 gap-2 backdrop-blur-md">
+        <div class="flex items-center space-x-3">
+            <div id="player-avatar" class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-purple-600 flex items-center justify-center font-black text-2xl shadow-lg border-2 border-amber-400">
+                🧙‍♂️
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="font-pixel text-sm md:text-base text-amber-400 font-bold" id="header-player-name">冒険者</h1>
+                    <button onclick="changePlayerName()" class="text-xs text-slate-400 hover:text-amber-300 transition" title="名前を変更"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-pixel" id="header-badge">入門級</span>
+                </div>
+                <p class="text-xs text-slate-400 font-mono" id="header-job-title">Lv.<span id="header-level">1</span> タイピング勇者</p>
+                <p class="text-[10px] text-purple-300 font-pixel hidden" id="header-title"></p>
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <button onclick="switchScreen('map')" class="px-3 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/40 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-map"></i>ワールドマップ
+            </button>
+            <button onclick="switchScreen('dojo')" class="px-3 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/40 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-scroll text-amber-400"></i>段位道場
+            </button>
+            <button onclick="switchScreen('profile')" class="px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-id-card"></i>プロフィール
+            </button>
+            <button onclick="startDailyChallenge()" class="px-3 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-calendar-day"></i>デイリー
+            </button>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="max-w-4xl mx-auto w-full flex-grow flex flex-col justify-center">
+
+        <!-- 1. RPG ワールドマップ画面 -->
+        <div id="screen-map" class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-black text-emerald-400 mb-1 font-pixel"><i class="fa-solid fa-map-location-dot mr-2"></i>冒険のワールドマップ</h2>
+                <p class="text-xs text-slate-400">全28ステージを順番に攻略しよう！敵を撃破しても文字はそのまま打鍵継続！</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto p-2" id="world-map-stage-list">
+                <!-- Stages -->
+            </div>
+        </div>
+
+        <!-- 2. RPG タイピングバトル画面 -->
+        <div id="screen-battle" class="hidden flex-col gap-4">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 md:p-8 backdrop-blur-xl relative">
+                <!-- モンスター情報 -->
+                <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-3">
+                        <span class="text-4xl" id="enemy-icon">👾</span>
+                        <div>
+                            <div class="text-sm md:text-base font-bold text-rose-400" id="enemy-name">スライム</div>
+                            <div class="text-xs text-slate-400 font-mono">HP: <span id="enemy-hp-text">100/100</span></div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400 font-mono">WAVE</div>
+                        <div class="text-xl font-bold text-amber-400 font-mono"><span id="battle-wave-curr">1</span> / <span id="battle-wave-max">3</span></div>
+                    </div>
+                </div>
+
+                <!-- 敵のHPバー -->
+                <div class="w-full bg-slate-950 rounded-full h-3 mb-6 overflow-hidden border border-slate-800">
+                    <div id="enemy-hp-bar" class="bg-gradient-to-r from-rose-500 to-pink-500 h-full transition-all duration-200" style="width: 100%;"></div>
+                </div>
+
+                <!-- お題表示 -->
+                <div class="text-center mb-2">
+                    <span id="battle-kanji" class="text-xl md:text-3xl font-black tracking-wide text-slate-100">お題取得中...</span>
+                </div>
+                <div class="text-center mb-6">
+                    <span id="battle-kana" class="text-xs md:text-base font-semibold text-slate-400">おだいしゅときゅうちゅう</span>
+                </div>
+
+                <!-- ローマ字入力表示エリア -->
+                <div class="bg-slate-950/90 rounded-2xl p-4 md:p-6 border border-slate-800 text-center font-mono text-lg md:text-2xl tracking-wider shadow-inner">
+                    <span id="battle-typed" class="char-typed"></span><span id="battle-current" class="char-current"></span><span id="battle-untyped" class="char-untyped"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 段位道場画面 -->
+        <div id="screen-dojo" class="hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-black text-amber-400 mb-1 font-pixel"><i class="fa-solid fa-scroll mr-2"></i>タイピング段位道場</h2>
+                <p class="text-xs text-slate-400">入門級から「神人」まで全25段階！0ミス合格で「🌈極カード」獲得！</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto p-2" id="dojo-rank-list">
+                <!-- Rank Cards dynamically generated -->
+            </div>
+        </div>
+
+        <!-- 4. 実技試験プレイ画面 -->
+        <div id="screen-test" class="hidden flex-col gap-5">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 md:p-8 backdrop-blur-xl relative">
+                <!-- 試験ヘッダー情報 -->
+                <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+                    <div>
+                        <span class="text-xs text-amber-400 font-pixel font-bold uppercase tracking-wider" id="test-rank-title">初段 試験</span>
+                        <div class="text-xs text-slate-400">残りミス: <span id="test-miss-left" class="text-rose-400 font-bold font-mono">3</span> / <span id="test-miss-max" class="text-slate-500 font-mono">3</span></div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400 font-mono">TIME LEFT</div>
+                        <div class="text-2xl font-black text-cyan-400 font-mono" id="test-timer">90s</div>
+                    </div>
+                </div>
+
+                <!-- ミス残量バー -->
+                <div class="mb-4">
+                    <div class="flex justify-between text-[10px] text-slate-500 font-mono mb-1">
+                        <span>MISS GAUGE</span>
+                        <span id="test-miss-bar-label">100%</span>
+                    </div>
+                    <div class="miss-bar-wrap">
+                        <div id="test-miss-bar" class="miss-bar-fill" style="width:100%"></div>
+                    </div>
+                </div>
+
+                <!-- お題表示（漢字・かな） -->
+                <div class="text-center mb-2">
+                    <span id="test-kanji" class="text-xl md:text-3xl font-black tracking-wide text-slate-100">お題取得中...</span>
+                </div>
+                <div class="text-center mb-6">
+                    <span id="test-kana" class="text-xs md:text-base font-semibold text-slate-400">おだいしゅときゅうちゅう</span>
+                </div>
+
+                <!-- ローマ字入力表示エリア -->
+                <div class="bg-slate-950/90 rounded-2xl p-4 md:p-6 border border-slate-800 text-center font-mono text-lg md:text-2xl tracking-wider shadow-inner" id="romaji-container">
+                    <span id="typed-part" class="char-typed"></span><span id="current-part" class="char-current"></span><span id="untyped-part" class="char-untyped"></span>
+                </div>
+
+                <!-- リアルタイム判定ステータス -->
+                <div class="mt-4 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <div>進捗: <span id="test-progress" class="text-amber-400 font-bold">1 / 5</span> 題</div>
+                    <div>正確性: <span id="test-acc" class="text-emerald-400 font-bold">100%</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. プロフィール ＆ 称号バッジ装着画面 -->
+        <div id="screen-profile" class="hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-black text-purple-400 mb-1 font-pixel"><i class="fa-solid fa-id-card mr-2"></i>冒険者プロフィール</h2>
+                <p class="text-xs text-slate-400">獲得した段位バッジを選択して装着できます</p>
+            </div>
+            
+            <div class="max-w-md mx-auto bg-slate-950/80 p-5 rounded-2xl border border-slate-800 mb-6 text-center">
+                <div class="text-4xl mb-2" id="prof-avatar">🧙‍♂️</div>
+                <div class="text-lg font-bold text-slate-200" id="prof-name">冒険者</div>
+                <div class="text-xs text-amber-400 font-pixel mt-1" id="prof-equipped-badge">装着中の段位: [入門級]</div>
+                <div class="text-xs text-purple-300 font-pixel mt-1" id="prof-equipped-title">装着中の称号: （なし）</div>
+            </div>
+
+            <div class="max-w-md mx-auto grid grid-cols-2 gap-2 mb-5 text-center text-[11px] font-mono">
+                <div class="bg-slate-950/80 rounded-xl p-2 border border-slate-800">打鍵 <span id="stat-keys" class="text-cyan-400 font-bold">0</span></div>
+                <div class="bg-slate-950/80 rounded-xl p-2 border border-slate-800">ミス <span id="stat-misses" class="text-rose-400 font-bold">0</span></div>
+                <div class="bg-slate-950/80 rounded-xl p-2 border border-slate-800">バトル <span id="stat-battles" class="text-emerald-400 font-bold">0</span></div>
+                <div class="bg-slate-950/80 rounded-xl p-2 border border-slate-800">道場合格 <span id="stat-dojo" class="text-amber-400 font-bold">0</span></div>
+                <div class="bg-slate-950/80 rounded-xl p-2 border border-slate-800 col-span-2">虹合格 <span id="stat-perfect" class="text-pink-400 font-bold">0</span> ／ 星合計 <span id="stat-stars" class="text-yellow-400 font-bold">0</span></div>
+            </div>
+
+            <h3 class="text-sm font-bold text-slate-300 mb-3 text-center"><i class="fa-solid fa-scroll text-purple-400 mr-1"></i>特別称号 (タップで装着)</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[20vh] overflow-y-auto p-1 mb-5" id="profile-title-list"></div>
+
+            <h3 class="text-sm font-bold text-slate-300 mb-3 text-center"><i class="fa-solid fa-award text-amber-400 mr-1"></i>獲得段位コレクション (タップで装着)</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-[30vh] overflow-y-auto p-1" id="profile-badge-list">
+                <!-- Badges -->
+            </div>
+
+            <!-- セーブコード -->
+            <div class="mt-6 max-w-lg mx-auto bg-slate-950/80 p-4 rounded-2xl border border-slate-700">
+                <h3 class="text-sm font-bold text-cyan-400 mb-3 text-center"><i class="fa-solid fa-floppy-disk mr-1"></i>セーブコード</h3>
+                <p class="text-[11px] text-slate-400 mb-3 text-center">進捗をコード化してコピー・別端末への引き継ぎができます</p>
+                <textarea id="save-code-box" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-[11px] font-mono text-slate-300 break-all resize-none focus:outline-none focus:border-cyan-500/50" placeholder="セーブコードがここに表示されます"></textarea>
+                <div class="flex flex-wrap gap-2 mt-3 justify-center">
+                    <button onclick="generateSaveCode()" class="px-3 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 rounded-xl text-xs font-bold transition">
+                        <i class="fa-solid fa-key mr-1"></i>コード発行
+                    </button>
+                    <button onclick="copySaveCode()" class="px-3 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 rounded-xl text-xs font-bold transition">
+                        <i class="fa-solid fa-copy mr-1"></i>コピー
+                    </button>
+                    <button onclick="importSaveCode()" class="px-3 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-bold transition">
+                        <i class="fa-solid fa-file-import mr-1"></i>コード読込
+                    </button>
+                </div>
+                <p id="save-code-msg" class="text-[11px] text-center mt-2 text-slate-500"></p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 「合」「格」カットインモーダル -->
+    <div id="modal-pass-cutin" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center z-50 hidden">
+        <div class="text-center">
+            <div id="cutin-kanji-container" class="flex justify-center items-center gap-4 text-7xl md:text-9xl font-black font-pixel">
+                <span id="cutin-go" class="text-amber-400 opacity-0 transform scale-50 transition-all duration-300">合</span>
+                <span id="cutin-kaku" class="text-amber-400 opacity-0 transform scale-50 transition-all duration-300">格</span>
+            </div>
+            <div id="cutin-perfect-badge" class="mt-4 hidden animate-popIn">
+                <span class="px-4 py-2 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white font-extrabold text-sm md:text-xl rounded-full shadow-lg border-2 border-white">
+                    🌈 0ミス (極) 達成！！
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 「不」「合」「格」カットインモーダル -->
+    <div id="modal-fail-cutin" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center z-50 hidden">
+        <div class="text-center">
+            <div class="flex justify-center items-center gap-3 text-6xl md:text-8xl font-black font-pixel text-rose-500">
+                <span id="cutin-fu" class="opacity-0 transform scale-50 transition-all duration-300">不</span>
+                <span id="cutin-fail-go" class="opacity-0 transform scale-50 transition-all duration-300">合</span>
+                <span id="cutin-fail-kaku" class="opacity-0 transform scale-50 transition-all duration-300">格</span>
+            </div>
+            <p class="mt-4 text-slate-400 text-sm font-pixel">諦めずに再挑戦しよう！</p>
+        </div>
+    </div>
+
+    <!-- 段位挑戦確認モーダル -->
+    <div id="modal-dojo-confirm" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center z-50 hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl p-8 max-w-sm w-full mx-4 text-center shadow-2xl">
+            <div class="text-4xl mb-3">📜</div>
+            <h3 class="text-xl font-black text-amber-400 font-pixel mb-2" id="dojo-confirm-title">初段</h3>
+            <p class="text-slate-200 text-base mb-6 font-bold">この段位に挑む？</p>
+            <div class="flex gap-3 justify-center">
+                <button onclick="confirmDojoYes()" class="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition">はい</button>
+                <button onclick="confirmDojoNo()" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold rounded-xl transition">いいえ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- スペースキー待機モーダル -->
+    <div id="modal-dojo-ready" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center z-50 hidden">
+        <div class="bg-slate-900 border border-cyan-500/40 rounded-3xl p-8 max-w-sm w-full mx-4 text-center shadow-2xl animate-popIn">
+            <div class="text-4xl mb-3">⌨️</div>
+            <p class="text-cyan-300 text-lg font-bold mb-2">準備完了</p>
+            <p class="text-slate-300 text-sm mb-4"><span class="text-amber-400 font-pixel font-bold" id="dojo-ready-rank">初段</span> の試験を開始します</p>
+            <p class="text-2xl font-black text-white font-pixel tracking-wider">
+                <span class="px-3 py-1 bg-slate-800 border border-slate-600 rounded-lg text-cyan-400">Space</span>
+                <span class="text-slate-400 text-base ml-2">キーを押して開始</span>
+            </p>
+            <button onclick="cancelDojoReady()" class="mt-6 text-xs text-slate-500 hover:text-slate-300 transition">キャンセル</button>
+        </div>
+    </div>
+
+    <!-- 合格リザルト画面 -->
+    <div id="modal-dojo-result" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md flex items-center justify-center z-50 hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 md:p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="text-center mb-4">
+                <div class="text-3xl mb-1" id="result-icon">🏆</div>
+                <h3 class="text-xl font-black font-pixel text-amber-400" id="result-rank-title">初段 合格</h3>
+                <p class="text-xs mt-1" id="result-perfect-label"></p>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mb-4 text-center">
+                <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                    <div class="text-[10px] text-slate-500">残り時間</div>
+                    <div class="text-lg font-mono font-bold text-cyan-400" id="result-time-left">0s</div>
+                </div>
+                <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                    <div class="text-[10px] text-slate-500">ミス数</div>
+                    <div class="text-lg font-mono font-bold text-rose-400" id="result-misses">0</div>
+                </div>
+                <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                    <div class="text-[10px] text-slate-500">正確性</div>
+                    <div class="text-lg font-mono font-bold text-emerald-400" id="result-acc">100%</div>
+                </div>
+                <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                    <div class="text-[10px] text-slate-500">制限時間</div>
+                    <div class="text-lg font-mono font-bold text-slate-300" id="result-time-limit">0s</div>
+                </div>
+            </div>
+            <div class="mb-2 flex justify-between text-[10px] text-slate-500 font-mono">
+                <span>RESULT GAUGE</span>
+                <span id="result-gauge-label">100%</span>
+            </div>
+            <div class="result-gauge-wrap mb-5">
+                <div id="result-gauge-fill" class="result-gauge-fill" style="width:100%"></div>
+            </div>
+            <button onclick="closeDojoResult()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition text-sm">
+                次へ
+            </button>
+        </div>
+    </div>
+
+    <!-- 初合格・初虹合格 祝賀 -->
+    <div id="modal-dojo-celebrate" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md flex items-center justify-center z-50 hidden">
+        <div class="text-center max-w-md mx-4">
+            <p class="text-amber-300 text-sm font-pixel mb-3" id="celebrate-sub">初合格！</p>
+            <h2 class="text-2xl md:text-3xl font-black text-white font-pixel leading-relaxed mb-6" id="celebrate-msg">
+                おめでとう！君は初段だ！
+            </h2>
+            <div id="celebrate-card" class="inline-block p-5 rounded-2xl min-w-[140px] card-shine badge-glow-pulse mb-6">
+                <div class="text-3xl mb-2" id="celebrate-card-icon">🏅</div>
+                <div class="font-pixel font-bold text-lg" id="celebrate-card-title">初段</div>
+            </div>
+            <div>
+                <button onclick="closeDojoCelebrate()" class="px-8 py-3 bg-purple-500 hover:bg-purple-400 text-white font-bold rounded-xl transition">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音声効果 (Web Audio API) -->
+    <script>
+        class SoundEngine {
+            constructor() { this.ctx = null; }
+            init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+            playKey() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(200, this.ctx.currentTime + 0.04);
+                gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.04);
+            }
+            playError() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(140, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.1);
+            }
+            playFanfare() {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+                    gain.gain.setValueAtTime(0.12, now + idx * 0.09);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.3);
+                    osc.connect(gain); gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.09); osc.stop(now + idx * 0.09 + 0.3);
+                });
+            }
+            playFailSound() {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                [300, 260, 220, 180].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+                    gain.gain.setValueAtTime(0.1, now + idx * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.25);
+                    osc.connect(gain); gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.12); osc.stop(now + idx * 0.12 + 0.25);
+                });
+            }
+        }
+        const sfx = new SoundEngine();
+    </script>
+
+    <!-- ゲームロジック ＆ ローマ字変換 -->
+    <script>
+        const ROMAJI_MAP = {
+            'あ': ['a'], 'い': ['i'], 'う': ['u'], 'え': ['e'], 'お': ['o'],
+            'か': ['ka'], 'き': ['ki'], 'く': ['ku'], 'け': ['ke'], 'こ': ['ko'],
+            'さ': ['sa'], 'し': ['si', 'shi'], 'す': ['su'], 'せ': ['se'], 'そ': ['so'],
+            'た': ['ta'], 'ち': ['ti', 'chi'], 'つ': ['tu', 'tsu'], 'て': ['te'], 'と': ['to'],
+            'な': ['na'], 'に': ['ni'], 'ぬ': ['nu'], 'ね': ['ne'], 'の': ['no'],
+            'は': ['ha'], 'ひ': ['hi'], 'ふ': ['hu', 'fu'], 'へ': ['he'], 'ほ': ['ho'],
+            'ま': ['ma'], 'み': ['mi'], 'む': ['mu'], 'め': ['me'], 'も': ['mo'],
+            'や': ['ya'], 'ゆ': ['yu'], 'よ': ['yo'],
+            'ら': ['ra'], 'り': ['ri'], 'る': ['ru'], 'れ': ['re'], 'ろ': ['ro'],
+            'わ': ['wa'], 'を': ['wo'], 'ん': ['nn', 'n'],
+            'が': ['ga'], 'ぎ': ['gi'], 'ぐ': ['gu'], 'げ': ['ge'], 'ご': ['go'],
+            'ざ': ['za'], 'じ': ['zi', 'ji'], 'ず': ['zu'], 'ぜ': ['ze'], 'ぞ': ['zo'],
+            'だ': ['da'], 'ぢ': ['di'], 'づ': ['du'], 'で': ['de'], 'ど': ['do'],
+            'ば': ['ba'], 'び': ['bi'], 'ぶ': ['bu'], 'べ': ['be'], 'ぼ': ['bo'],
+            'ぱ': ['pa'], 'ぴ': ['pi'], 'ぷ': ['pu'], 'ぺ': ['pe'], 'ぽ': ['po'],
+            'きゃ': ['kya'], 'きゅ': ['kyu'], 'きょ': ['kyo'],
+            'しゃ': ['sya', 'sha'], 'しゅ': ['syu', 'shu'], 'しょ': ['syo', 'sho'],
+            'ちゃ': ['tya', 'cha'], 'ちゅ': ['tyu', 'chu'], 'ちょ': ['tyo', 'cho'],
+            'にゃ': ['nya'], 'にゅ': ['nyu'], 'にょ': ['nyo'],
+            'ひゃ': ['hya'], 'ひゅ': ['hyu'], 'ひょ': ['hyo'],
+            'みゃ': ['mya'], 'みゅ': ['myu'], 'みょ': ['myo'],
+            'りゃ': ['rya'], 'りゅ': ['ryu'], 'りょ': ['ryo'],
+            'ぎゃ': ['gya'], 'ぎゅ': ['gyu'], 'ぎょ': ['gyo'],
+            'じゃ': ['ja', 'zya'], 'じゅ': ['ju', 'zyu'], 'じょ': ['jo', 'zyo'],
+            'びゃ': ['bya'], 'びゅ': ['byu'], 'びょ': ['byo'],
+            'ぴゃ': ['pya'], 'ぴゅ': ['pyu'], 'ぴょ': ['pyo'],
+            'っ': ['xtu', 'ltu']
+        };
+
+        function convertKanaToNodes(kanaStr) {
+            let nodes = [];
+            let i = 0;
+            while (i < kanaStr.length) {
+                // 長音「ー」: 直前の母音を繰り返す
+                if (kanaStr[i] === 'ー') {
+                    let vowel = 'u';
+                    if (nodes.length > 0) {
+                        const prev = nodes[nodes.length - 1].patterns[0] || '';
+                        const last = prev[prev.length - 1];
+                        if ('aiueo'.includes(last)) vowel = last;
+                    }
+                    nodes.push({ kana: 'ー', patterns: [vowel] });
+                    i++;
+                    continue;
+                }
+                if (i + 1 < kanaStr.length) {
+                    const pair = kanaStr.slice(i, i + 2);
+                    if (ROMAJI_MAP[pair]) {
+                        nodes.push({ kana: pair, patterns: ROMAJI_MAP[pair] });
+                        i += 2;
+                        continue;
+                    }
+                }
+                if (kanaStr[i] === 'っ' && i + 1 < kanaStr.length) {
+                    const nextKana = kanaStr[i + 1];
+                    const nextPair = kanaStr.slice(i + 1, i + 3);
+                    const nextPattern = (ROMAJI_MAP[nextPair] || ROMAJI_MAP[nextKana] || [])[0];
+                    if (nextPattern && !['a','i','u','e','o','n'].includes(nextPattern[0])) {
+                        nodes.push({ kana: 'っ', patterns: [nextPattern[0], ...ROMAJI_MAP['っ']] });
+                        i++;
+                        continue;
+                    }
+                }
+                const single = kanaStr[i];
+                if (ROMAJI_MAP[single]) {
+                    nodes.push({ kana: single, patterns: ROMAJI_MAP[single] });
+                } else {
+                    nodes.push({ kana: single, patterns: [single] });
+                }
+                i++;
+            }
+            return nodes;
+        }
+
+        // 全25段階の段位道場データリスト (長尺仕様 & 段階的アンロック)
+        const DOJO_RANKS = [
+            { id: '10k', title: '10級', time: 30, missLimit: 10, prompts: [
+                { kanji: '挨拶', kana: 'あいさつ' }, { kanji: '世界', kana: 'せかい' }, { kanji: '桜の花', kana: 'さくらのはな' },
+                { kanji: '青空', kana: 'あおぞら' }, { kanji: '未来', kana: 'みらい' }, { kanji: '今日の天気', kana: 'きょうのてんき' },
+                { kanji: '朝ごはん', kana: 'あさごはん' }, { kanji: '楽しい時間', kana: 'たのしいじかん' }
+            ]},
+            { id: '9k', title: '9級', time: 30, missLimit: 10, prompts: [
+                { kanji: '希望の光', kana: 'きぼうのひかり' }, { kanji: '波の音', kana: 'なみのおと' }, { kanji: '冒険者', kana: 'ぼうけんしゃ' },
+                { kanji: '仲間たち', kana: 'なかまたち' }, { kanji: '流星群', kana: 'りゅうせいぐん' }, { kanji: '山の頂上', kana: 'やまのちょうじょう' },
+                { kanji: '海の彼方', kana: 'うみのかなた' }, { kanji: '虹のかけ橋', kana: 'にじのかけはし' }
+            ]},
+            { id: '8k', title: '8級', time: 32, missLimit: 9, prompts: [
+                { kanji: '太陽の輝き', kana: 'たいようのかがやき' }, { kanji: '静かな夜', kana: 'しずかなよる' }, { kanji: '旅立ちの朝', kana: 'たびだちのあさ' },
+                { kanji: '風の歌', kana: 'かぜのうた' }, { kanji: '夢の続き', kana: 'ゆめのつづき' }, { kanji: '雪の結晶', kana: 'ゆきのけっしょう' },
+                { kanji: '緑の森', kana: 'みどりのもり' }, { kanji: '新しい一日', kana: 'あたらしいいちにち' }
+            ]},
+            { id: '7k', title: '7級', time: 32, missLimit: 9, prompts: [
+                { kanji: '約束の場所', kana: 'やくそくのばしょ' }, { kanji: '挑戦と失敗', kana: 'ちょうせんとしっぱい' },
+                { kanji: '継続は力なり', kana: 'けいぞくはちからなり' }, { kanji: '無限の可能性', kana: 'むげんのかのうせい' },
+                { kanji: '努力の先にある成功', kana: 'どりょくのさきにあるせいこう' }, { kanji: '心を一つに', kana: 'こころをひとつに' },
+                { kanji: '明日への架け橋', kana: 'あしたへのかけはし' }
+            ]},
+            { id: '6k', title: '6級', time: 35, missLimit: 8, prompts: [
+                { kanji: '知識の探求', kana: 'ちしきのたんきゅう' }, { kanji: '勇気ある一歩', kana: 'ゆうきあるいっぽ' },
+                { kanji: '星屑の海', kana: 'ほしくずのうみ' }, { kanji: '新時代の扉', kana: 'しんじだいのとびら' },
+                { kanji: '真実を見抜く力', kana: 'しんじつをみぬくちから' }, { kanji: '絆を大切に', kana: 'きずなをたいせつに' },
+                { kanji: '情熱を胸に秘めて', kana: 'じょうねつをむねにひめて' }
+            ]},
+            { id: '5k', title: '5級', time: 35, missLimit: 8, prompts: [
+                { kanji: '疾風迅雷の如く', kana: 'しっぷうじんらいのごとく' }, { kanji: '明日に向かって走る', kana: 'あしたにむかってはしる' },
+                { kanji: '情熱を燃やせ', kana: 'じょうねつをもやせ' }, { kanji: '困難に立ち向かえ', kana: 'こんなんにたちむかえ' },
+                { kanji: '勝利の瞬間を掴め', kana: 'しょうりのしゅんかんをつかめ' }, { kanji: '諦めない心が鍵', kana: 'あきらめないこころがかぎ' }
+            ]},
+            { id: '4k', title: '4級', time: 37, missLimit: 7, prompts: [
+                { kanji: '夜明けのグラデーション', kana: 'よあけのぐらでーしょん' }, { kanji: 'キーボードを刻む音', kana: 'きーぼーどをきざむおと' },
+                { kanji: '心躍る瞬間', kana: 'こころおどるしゅんかん' }, { kanji: '指先から生まれる言葉', kana: 'ゆびさきからうまれることば' },
+                { kanji: 'リズムに乗って打て', kana: 'りずむにのってうて' }, { kanji: '正確さが速さにつながる', kana: 'せいかくさがはやさにつながる' }
+            ]},
+            { id: '3k', title: '3級', time: 37, missLimit: 7, prompts: [
+                { kanji: '限界を超えて突き進む', kana: 'げんかいをこえてつきすすむ' }, { kanji: '一期一会の出会い', kana: 'いちごいちえのであい' },
+                { kanji: '創造力を解き放て', kana: 'そうぞうりょくをときはなって' }, { kanji: '集中力を高めよう', kana: 'しゅうちゅうりょくをたかめよう' },
+                { kanji: '無駄のない美しい打鍵', kana: 'むだのないうつくしいだけん' }, { kanji: '心を無にして打て', kana: 'こころをむにしてうて' }
+            ]},
+            { id: '2k', title: '2級', time: 40, missLimit: 6, prompts: [
+                { kanji: '静寂を切り裂く打鍵音', kana: 'せいじゃくをきりさくだけんおん' }, { kanji: '未知の世界へ羽ばたく', kana: 'みちのせかいへはばたく' },
+                { kanji: '閃光のタイピスト', kana: 'せんこうのたいぴすと' }, { kanji: '指先が踊るような速さ', kana: 'ゆびさきがおどるようなはやさ' },
+                { kanji: '完璧を目指し続ける', kana: 'かんぺきをめざしつづける' }
+            ]},
+            { id: '1k', title: '1級', time: 40, missLimit: 6, prompts: [
+                { kanji: '流れるような美しい指触り', kana: 'ながれるようないつくしいゆびさわり' }, { kanji: '幾多の試練を超えて', kana: 'いくたのしれんをこえて' },
+                { kanji: '最高のパフォーマンスを', kana: 'さいこうのぱふぉーまんすを' }, { kanji: '呼吸と打鍵を合わせろ', kana: 'こきゅうとだけんをあわせろ' },
+                { kanji: '一文字一文字に魂を込めて', kana: 'いちもじいちもじにたましいをこめて' }
+            ]},
+            { id: '1d', title: '初段', time: 42, missLimit: 5, prompts: [
+                { kanji: 'タイピングの道に終わりなし', kana: 'たいぴんぐのみちにおわりなし' }, { kanji: '集中力を研ぎ澄ませ', kana: 'しゅうちゅうりょくをとぎすませ' },
+                { kanji: '初段の壁を突破せよ', kana: 'しょだんのかべをとっぱせよ' }, { kanji: '基礎を固めさらに上へ', kana: 'きそをかためてさらにあうえ' }
+            ]},
+            { id: '2d', title: '二段', time: 42, missLimit: 5, prompts: [
+                { kanji: '迷いを捨ててキーを打て', kana: 'まよいをすててきーをうて' }, { kanji: '静と動のコントラスト', kana: 'せいとどうのこんとらすと' },
+                { kanji: '二段の実力を証明せよ', kana: 'にだんのじつりょくをしょうめいせよ' }, { kanji: '速さよりも正確さを優先', kana: 'はやさよりもせいかくさをゆうせん' }
+            ]},
+            { id: '3d', title: '三段', time: 45, missLimit: 4, prompts: [
+                { kanji: '刹那の判断が勝負を分ける', kana: 'せつなのはんだんがしょうぶをわける' }, { kanji: '揺るぎない確かな技術', kana: 'ゆるぎないたしかなぎじゅつ' },
+                { kanji: '三段の領域に足を踏み入れる', kana: 'さんだんのりょういきにあしをふみいれる' }, { kanji: 'ミスを恐れず前進しろ', kana: 'みすをおそれずぜんしんしろ' }
+            ]},
+            { id: '4d', title: '四段', time: 45, missLimit: 4, prompts: [
+                { kanji: '光の速さで言葉を連ねる', kana: 'ひかりのはやさでことばをつらねる' }, { kanji: '不屈の闘志を燃やし続ける', kana: 'ふくつのとうしをもやしつづける' },
+                { kanji: '四段の風格を身につけろ', kana: 'よんだんのふうかくをみにつけろ' }, { kanji: '指が記憶している感覚', kana: 'ゆびがきおくしているかんかく' }
+            ]},
+            { id: '5d', title: '五段', time: 47, missLimit: 3, prompts: [
+                { kanji: '乱れなき精神と精緻な指先', kana: 'みだれなきせいしんとせいちなゆびさき' }, { kanji: '極限状態での冷静な判断', kana: 'きょくげんじょうたいでのれいせいなはんだん' },
+                { kanji: '五段の技が光る瞬間', kana: 'ごだんのわざがひかるしゅんかん' }, { kanji: '一打の重みを知れ', kana: 'いちだのおもみをしれ' }
+            ]},
+            { id: '6d', title: '六段', time: 47, missLimit: 3, prompts: [
+                { kanji: '風の如く素早く林の如く静かに', kana: 'かぜのごとくすばやくはやしのごとくしずかに' }, { kanji: '圧倒的な打鍵速度の領域', kana: 'あっとうてきなだけんそくどのりょういき' },
+                { kanji: '六段の風格と精度', kana: 'ろくだんのふうかくとせいど' }, { kanji: '余計な力を抜き切れ', kana: 'よけいなちからをぬききれ' }
+            ]},
+            { id: '7d', title: '七段', time: 50, missLimit: 3, prompts: [
+                { kanji: '無我の境地で指を動かす', kana: 'むがのきょうちでゆびをうごかす' }, { kanji: '正確性とスピードの両立', kana: 'せいかくせいとすぴーどのりょうりつ' },
+                { kanji: '七段の技量を示せ', kana: 'しちだんのぎりょうをしめせ' }, { kanji: '心技体の調和を目指せ', kana: 'しんぎたいのちょうわをめざせ' }
+            ]},
+            { id: '8d', title: '八段', time: 50, missLimit: 3, prompts: [
+                { kanji: '常人には見えぬ打音の軌跡', kana: 'じょうじんにはみえぬだおんのきせき' }, { kanji: '幾千のタイピングを重ねて', kana: 'いくせんのたいぴんぐをかさねて' },
+                { kanji: '八段の風格が漂う', kana: 'はちだんのふうかくがただよう' }, { kanji: '極限まで削ぎ落とした動き', kana: 'きょくげんまでそぎおとしたうごき' }
+            ]},
+            { id: '9d', title: '九段', time: 52, missLimit: 2, prompts: [
+                { kanji: '神速を超えた打鍵の領域', kana: 'しんそくをこえただけんのりょういき' }, { kanji: '一切の無駄を削ぎ落とした美技', kana: 'いっさいのむだをそぎおとしたびぎ' },
+                { kanji: '九段の境地に達する', kana: 'きゅうだんのきょうちにたっする' }, { kanji: '一瞬の迷いが命取りになる', kana: 'いっしゅんのまよいがいのちとりになる' }
+            ]},
+            { id: '10d', title: '十段', time: 52, missLimit: 2, prompts: [
+                { kanji: '頂点に君臨するタイピング大師', kana: 'ちょうてんにくんりんするたいぴんぐだいし' }, { kanji: '極めし者の威風堂々たる構え', kana: 'きわめしもののいふうどうどうたるかまえ' },
+                { kanji: '十段の名に恥じぬ実力', kana: 'じゅうだんのなにはじぬじつりょく' }, { kanji: '完璧なフルコンボを決めろ', kana: 'かんぺきなふるこんぼをきめろ' }
+            ]},
+            { id: 'kuro', title: '玄人', time: 55, missLimit: 2, prompts: [
+                { kanji: '熟練の技が光る打鍵の美学', kana: 'じゅくれんのわざがひかるだけんのびがく' },
+                { kanji: '玄人ならではの無駄のない動き', kana: 'くろうとならではのむだのないうごき' },
+                { kanji: '経験が生む自然なリズム', kana: 'けいけんがうむしぜんなりずむ' },
+                { kanji: '玄人の領域を体現せよ', kana: 'くろうとのりょういきをたいげんせよ' },
+                { kanji: '指先に宿る確かな感覚', kana: 'ゆびさきにやどるたしかなかんかく' },
+                { kanji: '静寂の中で響く打鍵音', kana: 'せいじゃくのなかでひびくだけんおん' },
+                { kanji: '技術と感覚の融合', kana: 'ぎじゅつとかんかくのゆうごう' },
+                { kanji: '玄人だけが知る極み', kana: 'くろうとだけがしるきわみ' }
+            ]},
+            { id: 'meijin', title: '名人', time: 55, missLimit: 2, prompts: [
+                { kanji: '名人の領域に達した指先の舞', kana: 'めいじんのりょういきにたっしたゆびさきのまい' },
+                { kanji: '言葉がキーボードから溢れ出す', kana: 'ことばがきーぼーどからあふれだす' },
+                { kanji: '名人芸と称される打鍵', kana: 'めいじんげいとしょうされるだけん' },
+                { kanji: '誰もが認める技術の結晶', kana: 'だれもがみとめるぎじゅつのけっしょう' },
+                { kanji: '流麗なる指の軌跡', kana: 'りゅうれいなるゆびのきせき' },
+                { kanji: '一打に込められた美学', kana: 'いちだにこめられたびがく' },
+                { kanji: '名人の風格が漂う構え', kana: 'めいじんのふうかくがただようかまえ' },
+                { kanji: '技が芸術へと昇華する', kana: 'わざがげいじゅつへしょうかする' }
+            ]},
+            { id: 'chojin', title: '超人', time: 57, missLimit: 2, prompts: [
+                { kanji: '人間を越えた驚異的なスピード', kana: 'にんげんをこえたきょういてきなすぴーど' },
+                { kanji: '超人的な集中力と反射神経', kana: 'ちょうじんてきなしゅうちゅうりょくとはんしゃしんけい' },
+                { kanji: '常識を覆す打鍵速度', kana: 'じょうしきをくつがえすだけんそくど' },
+                { kanji: '超人が見せる完璧な制御', kana: 'ちょうじんがみせるかんぺきなせいぎょ' },
+                { kanji: '限界の向こう側へ踏み出せ', kana: 'げんかいのむこうがわへふみだせ' },
+                { kanji: '光速をも超える指の動き', kana: 'こうそくをもこえるゆびのうごき' },
+                { kanji: '常識外れの精度を維持せよ', kana: 'じょうしきはずれのせいどをいじせよ' },
+                { kanji: '超常の領域に到達した者', kana: 'ちょうじょうのりょういきにとうたつしたもの' }
+            ]},
+            { id: 'tatsujin', title: '達人', time: 57, missLimit: 2, prompts: [
+                { kanji: '極限の精度と神速を誇る達人', kana: 'きょくげんのせいどとしんそくをほこるたつじん' },
+                { kanji: 'ノーミスこそが達人の証明なり', kana: 'のーみすこそがたつじんのしょうめいなり' },
+                { kanji: '達人が放つ一打の輝き', kana: 'たつじんがはなついちだのかがやき' },
+                { kanji: 'ミスの許されない世界', kana: 'みすのゆるされないせかい' },
+                { kanji: '技の極みに到達した指先', kana: 'わざのきわみにとうたつしたゆびさき' },
+                { kanji: '達人のみが歩める細き道', kana: 'たつじんのみがあるめるほそきみち' },
+                { kanji: '完璧を超えた領域の住人', kana: 'かんぺきをこえたりょういきのじゅうにん' },
+                { kanji: '一打一打が物語を紡ぐ', kana: 'いちだいちだがものがたりをつむぐ' }
+            ]},
+            { id: 'god', title: '神人', time: 60, missLimit: 1, prompts: [
+                { kanji: '神の領域に到達せし伝説のタイパー', kana: 'かみのりょういきにとうたつせしでんせつのたいぱー' },
+                { kanji: '一糸乱れぬ完璧なるフルコンボ', kana: 'いっしみだれぬかんぺきなるふるこんぼ' },
+                { kanji: '神人が示す究極のタイピング', kana: 'しんじんがしめすきゅうきょくのたいぴんぐ' },
+                { kanji: '伝説を超えた神業の連続', kana: 'でんせつをこえたかみわざのれんぞく' },
+                { kanji: 'ここに至りし者のみが知る境地', kana: 'ここにいたりしもののみがしるきょうち' },
+                { kanji: '時すらも止めたかのような打鍵', kana: 'ときすらもとめたかのようだけん' },
+                { kanji: '神速と精度が織りなす奇跡', kana: 'しんそくとせいどがおりなすきせき' },
+                { kanji: '究極にして至高のタイピスト', kana: 'きゅうきょくにしてしこうのたいぴすと' }
+            ]}
+        ];
+
+
+        // RPG ワールドマップのステージ定義（全28ステージ）
+        const WORLD_STAGES = [
+            { id: 1, name: 'ステージ 1-1', enemy: 'スライム', icon: '👾', hp: 80, prompts: [{ kanji: '冒険の始まり', kana: 'ぼうけんのはじまり' }, { kanji: 'スライムが現れた', kana: 'すらいむがあらわれた' }] },
+            { id: 2, name: 'ステージ 1-2', enemy: 'ゴブリン', icon: '👺', hp: 120, prompts: [{ kanji: '森の小道を進む', kana: 'もりのこみちをすすむ' }, { kanji: 'ゴブリンの奇襲', kana: 'ごぶりんのきしゅう' }] },
+            { id: 3, name: 'ステージ 1-3', enemy: 'オーク', icon: '👹', hp: 160, prompts: [{ kanji: '荒野の戦い', kana: 'こうやのたたかい' }, { kanji: '強敵オーク撃破', kana: 'きょうてきおーくげきは' }] },
+            { id: 4, name: 'ステージ 2-1', enemy: 'キメラ', icon: '🐉', hp: 200, prompts: [{ kanji: '魔王城の門番', kana: 'まおうじょうのもんばん' }, { kanji: '牙を剥くキメラ', kana: 'きばをむくきめら' }] },
+            { id: 5, name: 'ステージ 2-2', enemy: 'ダークナイト', icon: '🤺', hp: 240, prompts: [{ kanji: '闇の騎士との死闘', kana: 'やみのきしとのしとう' }, { kanji: '剣戟が響き渡る', kana: 'けんげきがひびきわたる' }] },
+            { id: 6, name: 'ステージ 2-3', enemy: 'ドラゴン', icon: '🐲', hp: 300, prompts: [{ kanji: '灼熱の炎を吐く竜', kana: 'しゃくねつのほのおをはくりゅう' }, { kanji: '伝説の竜を討て', kana: 'でんせつのりゅうをうて' }] },
+            { id: 7, name: 'ステージ 3-1', enemy: 'ゴーレム', icon: '🗿', hp: 340, prompts: [{ kanji: '石の巨人を倒せ', kana: 'いしのきょじんをたおせ' }, { kanji: '重い一撃を避けろ', kana: 'おもいいちげきをさけろ' }] },
+            { id: 8, name: 'ステージ 3-2', enemy: 'ウィザード', icon: '🧙', hp: 380, prompts: [{ kanji: '魔法陣が輝く', kana: 'まほうじんがかがやく' }, { kanji: '呪文を打ち砕け', kana: 'じゅもんをうちくだけ' }] },
+            { id: 9, name: 'ステージ 3-3', enemy: 'フェニックス', icon: '🔥', hp: 420, prompts: [{ kanji: '炎の鳥が舞い上がる', kana: 'ほのおのとりがまいあがる' }, { kanji: '再生する翼を封じろ', kana: 'さいせいするつばさをふうじろ' }] },
+            { id: 10, name: 'ステージ 4-1', enemy: 'ヴァンパイア', icon: '🧛', hp: 460, prompts: [{ kanji: '血の夜が訪れる', kana: 'ちのよるがおとずれる' }, { kanji: '牙を持つ貴族', kana: 'きばをもつきぞく' }] },
+            { id: 11, name: 'ステージ 4-2', enemy: 'デーモン', icon: '😈', hp: 520, prompts: [{ kanji: '深淵から現れた悪魔', kana: 'しんえんからあらわれたあくま' }, { kanji: '闇の力を振り払え', kana: 'やみのちからをふりはらえ' }] },
+            { id: 12, name: 'ステージ 4-3', enemy: '魔王', icon: '👑', hp: 600, prompts: [{ kanji: '最終決戦の時が来た', kana: 'さいしゅうけっせんのときがきた' }, { kanji: 'タイピングで魔王を討て', kana: 'たいぴんぐでまおうをうて' }] },
+            { id: 13, name: 'ステージ 5-1', enemy: 'シャドウ', icon: '🌑', hp: 640, prompts: [{ kanji: '影が蠢く迷宮', kana: 'かげがうごめくめいきゅう' }, { kanji: '闇に溶ける刺客', kana: 'やみにとけるしかく' }] },
+            { id: 14, name: 'ステージ 5-2', enemy: 'リッチ', icon: '💀', hp: 700, prompts: [{ kanji: '不死の術者現る', kana: 'ふしのじゅっしゃあらわる' }, { kanji: '呪詛の言葉を断て', kana: 'じゅそのことばをたて' }] },
+            { id: 15, name: 'ステージ 5-3', enemy: 'ベヒモス', icon: '🦬', hp: 760, prompts: [{ kanji: '巨獣の咆哮が響く', kana: 'きょじゅうのほうこうがひびく' }, { kanji: '大地を揺らす突進', kana: 'だいちをゆらすとっしん' }] },
+            { id: 16, name: 'ステージ 6-1', enemy: 'セイレーン', icon: '🧜', hp: 820, prompts: [{ kanji: '魅惑の歌声に抗え', kana: 'みわくのうたごえにあらがえ' }, { kanji: '深海から迫る脅威', kana: 'しんかいからせまるきょうい' }] },
+            { id: 17, name: 'ステージ 6-2', enemy: 'ケンタウロス', icon: '🏹', hp: 880, prompts: [{ kanji: '疾走する弓の精鋭', kana: 'しっそうするゆみのせいえい' }, { kanji: '矢雨をかいくぐれ', kana: 'やあめをかいくぐれ' }] },
+            { id: 18, name: 'ステージ 6-3', enemy: 'ヒュドラ', icon: '🐍', hp: 960, prompts: [{ kanji: '多頭の蛇が襲来する', kana: 'たとうのへびがしゅうらいする' }, { kanji: '首を全て切り落とす', kana: 'くびをすべてきりおとす' }] },
+            { id: 19, name: 'ステージ 7-1', enemy: 'タイタン', icon: '⚡', hp: 1040, prompts: [{ kanji: '古の巨神が目覚める', kana: 'いにしえのきょしんがめざめる' }, { kanji: '雷鳴と共に降臨', kana: 'らいめいとともにこうりん' }] },
+            { id: 20, name: 'ステージ 7-2', enemy: '真・魔王', icon: '☠️', hp: 1200, prompts: [{ kanji: '真の最終決戦', kana: 'しんのさいしゅうけっせん' }, { kanji: '伝説を超える一撃を', kana: 'でんせつをこえるいちげきを' }] },
+            { id: 21, name: 'ステージ 8-1', enemy: 'アビスワーム', icon: '🪱', hp: 1280, prompts: [{ kanji: '深淵の虫が這い出る', kana: 'しんえんのむしがはいでる' }, { kanji: '闇を裂く閃光を放て', kana: 'やみをさくせんこうをはなて' }] },
+            { id: 22, name: 'ステージ 8-2', enemy: 'フロストジャイアント', icon: '🧊', hp: 1360, prompts: [{ kanji: '氷の巨人が立ちはだかる', kana: 'こおりのきょじんがたちはだかる' }, { kanji: '凍てつく息を避けろ', kana: 'いてつくいきをさけろ' }] },
+            { id: 23, name: 'ステージ 8-3', enemy: 'サンダーバード', icon: '🦅', hp: 1440, prompts: [{ kanji: '雷を纏う翼が舞う', kana: 'かみなりをまとうつばさがまう' }, { kanji: '空を支配する猛禽', kana: 'そらをしはいするもうきん' }] },
+            { id: 24, name: 'ステージ 9-1', enemy: 'カオスナイト', icon: '🛡️', hp: 1520, prompts: [{ kanji: '混沌の騎士が現れた', kana: 'こんとんのきしがあらわれた' }, { kanji: '秩序なき剣戟', kana: 'ちつじょなきけんげき' }] },
+            { id: 25, name: 'ステージ 9-2', enemy: 'ヴォイドメイジ', icon: '🌀', hp: 1600, prompts: [{ kanji: '虚無の魔法が広がる', kana: 'きょむのまほうがひろがる' }, { kanji: '空間を歪める術式', kana: 'くうかんをゆがめるじゅつしき' }] },
+            { id: 26, name: 'ステージ 9-3', enemy: 'エンシェントドラゴン', icon: '🐉', hp: 1720, prompts: [{ kanji: '古代龍の覚醒', kana: 'こだいりゅうのかくせい' }, { kanji: '時を超えた咆哮', kana: 'ときをこえたほうこう' }] },
+            { id: 27, name: 'ステージ 10-1', enemy: '堕天使', icon: '🖤', hp: 1840, prompts: [{ kanji: '堕ちた翼が黒く染まる', kana: 'おちたつばさがくろくそまる' }, { kanji: '光を失った使者', kana: 'ひかりをうしなったししゃ' }] },
+            { id: 28, name: 'ステージ 10-2', enemy: '終焉の魔神', icon: '👁️', hp: 2000, prompts: [{ kanji: '世界の終わりが近づく', kana: 'せかいのおわりがちかづく' }, { kanji: 'タイピングで運命を変えろ', kana: 'たいぴんぐでうんめいをかえろ' }] }
+        ];
+
+        // ステート管理
+        let player = {
+            name: '冒険者',
+            level: 1,
+            unlockedMapStage: 1,
+            clearedDojoRanks: [],
+            perfectDojoRanks: [],
+            equippedBadge: '10k',
+            equippedTitle: '',
+            unlockedTitles: [],
+            stageStars: {},
+            stats: {
+                totalKeys: 0,
+                totalMisses: 0,
+                battleClears: 0,
+                dojoClears: 0,
+                dojoPerfects: 0,
+                dailyPlays: 0
+            },
+            daily: { date: '', bestAcc: 0, bestMiss: 999, cleared: false }
+        };
+
+        // やり込み: 特別称号（条件達成で解除）
+        const SPECIAL_TITLES = [
+            { id: 'all_clear', name: '全段制覇者', desc: '全25段位に合格', check: p => p.clearedDojoRanks.length >= 25 },
+            { id: 'all_perfect', name: '極の継承者', desc: '全25段位を虹合格', check: p => p.perfectDojoRanks.length >= 25 },
+            { id: 'map_master', name: '地図の覇者', desc: '全28ステージクリア', check: p => p.unlockedMapStage > 28 },
+            { id: 'star_hunter', name: '星屑収集家', desc: 'マップ星を合計50以上', check: p => Object.values(p.stageStars || {}).reduce((a,b)=>a+b,0) >= 50 },
+            { id: 'star_perfect', name: '完美なる星図', desc: '全28ステージを★3', check: p => {
+                for (let i = 1; i <= 28; i++) if ((p.stageStars || {})[i] !== 3) return false;
+                return true;
+            }},
+            { id: 'key_10000', name: '一万打鍵の使い手', desc: '累計打鍵10000', check: p => (p.stats && p.stats.totalKeys) >= 10000 },
+            { id: 'abyss_walker', name: '深淵を歩む者', desc: '裏ステージをクリア', check: p => !!p.clearedExtra },
+        ];
+
+        // やり込み: 全クリ後の裏ステージ
+        const EXTRA_STAGES = [
+            { id: 101, name: '裏 1', enemy: '幻影スライム', icon: '👻', hp: 900, prompts: [
+                { kanji: '影が実体を持つ', kana: 'かげがじったいをもつ' },
+                { kanji: '幻を撃ち抜け', kana: 'まぼろしをうちぬけ' }
+            ]},
+            { id: 102, name: '裏 2', enemy: '無限の魔王', icon: '♾️', hp: 2500, prompts: [
+                { kanji: '終わりなき戦いが始まる', kana: 'おわりなきたたかいがはじまる' },
+                { kanji: '真の実力を示せ', kana: 'しんのじつりょくをしめせ' },
+                { kanji: 'タイピングの極致へ', kana: 'たいぴんぐのきょくちへ' }
+            ]},
+        ];
+
+        function refreshSpecialTitles() {
+            let changed = false;
+            SPECIAL_TITLES.forEach(t => {
+                try {
+                    if (t.check(player) && !player.unlockedTitles.includes(t.id)) {
+                        player.unlockedTitles.push(t.id);
+                        changed = true;
+                    }
+                } catch (e) {}
+            });
+            if (changed) saveData();
+            return changed;
+        }
+
+        function todayStr() {
+            const d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        }
+
+        function dailySeed() {
+            const s = todayStr();
+            let h = 0;
+            for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+            return h;
+        }
+
+        function getDailyPrompts() {
+            const pool = [];
+            DOJO_RANKS.forEach(r => r.prompts.forEach(p => pool.push(p)));
+            const seed = dailySeed();
+            const picks = [];
+            let x = seed;
+            for (let i = 0; i < 5; i++) {
+                x = (x * 1103515245 + 12345) >>> 0;
+                picks.push(pool[x % pool.length]);
+            }
+            return picks;
+        }
+
+        let currentDojoTest = null;
+        let testTimerId = null;
+        let pendingDojoRank = null;   // 確認待ちの段位
+        let waitingDojoStartKey = false; // Space待ちフラグ
+
+        // RPGバトル用ステート
+        let currentBattle = null;
+
+        function loadSavedData() {
+            const saved = localStorage.getItem('type_heroes_save');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    const baseStats = { totalKeys: 0, totalMisses: 0, battleClears: 0, dojoClears: 0, dojoPerfects: 0, dailyPlays: 0 };
+                    player = {
+                        ...player,
+                        ...parsed,
+                        stats: { ...baseStats, ...(parsed.stats || {}) },
+                        stageStars: parsed.stageStars || {},
+                        unlockedTitles: parsed.unlockedTitles || [],
+                        equippedTitle: parsed.equippedTitle || '',
+                        daily: parsed.daily || { date: '', bestAcc: 0, bestMiss: 999, cleared: false },
+                        clearedExtra: parsed.clearedExtra || false
+                    };
+                } catch(e) {}
+            }
+            // 日付が変わったらデイリーリセット
+            if (!player.daily || player.daily.date !== todayStr()) {
+                player.daily = { date: todayStr(), bestAcc: 0, bestMiss: 999, cleared: false };
+            }
+            refreshSpecialTitles();
+        }
+
+        function saveData() {
+            localStorage.setItem('type_heroes_save', JSON.stringify(player));
+        }
+
+        // Base64 URL-safe encode/decode (Unicode対応)
+        function encodeSavePayload(obj) {
+            const json = JSON.stringify(obj);
+            const bytes = new TextEncoder().encode(json);
+            let bin = '';
+            bytes.forEach(b => bin += String.fromCharCode(b));
+            return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        function decodeSavePayload(code) {
+            let b64 = code.trim().replace(/-/g, '+').replace(/_/g, '/');
+            while (b64.length % 4) b64 += '=';
+            const bin = atob(b64);
+            const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+            const json = new TextDecoder().decode(bytes);
+            return JSON.parse(json);
+        }
+
+        function generateSaveCode() {
+            try {
+                const payload = {
+                    v: 2,
+                    name: player.name,
+                    level: player.level,
+                    unlockedMapStage: player.unlockedMapStage,
+                    clearedDojoRanks: player.clearedDojoRanks,
+                    perfectDojoRanks: player.perfectDojoRanks,
+                    equippedBadge: player.equippedBadge,
+                    equippedTitle: player.equippedTitle || '',
+                    unlockedTitles: player.unlockedTitles || [],
+                    stageStars: player.stageStars || {},
+                    stats: player.stats || {},
+                    daily: player.daily || {},
+                    clearedExtra: !!player.clearedExtra
+                };
+                const code = 'TH2-' + encodeSavePayload(payload);
+                const box = document.getElementById('save-code-box');
+                if (box) box.value = code;
+                const msg = document.getElementById('save-code-msg');
+                if (msg) {
+                    msg.textContent = 'セーブコードを発行しました';
+                    msg.className = 'text-[11px] text-center mt-2 text-emerald-400';
+                }
+            } catch (e) {
+                const msg = document.getElementById('save-code-msg');
+                if (msg) {
+                    msg.textContent = '発行に失敗しました';
+                    msg.className = 'text-[11px] text-center mt-2 text-rose-400';
+                }
+            }
+        }
+
+        async function copySaveCode() {
+            const box = document.getElementById('save-code-box');
+            const msg = document.getElementById('save-code-msg');
+            if (!box || !box.value.trim()) {
+                if (msg) {
+                    msg.textContent = '先に「コード発行」を押してください';
+                    msg.className = 'text-[11px] text-center mt-2 text-amber-400';
+                }
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(box.value.trim());
+                if (msg) {
+                    msg.textContent = 'クリップボードにコピーしました';
+                    msg.className = 'text-[11px] text-center mt-2 text-emerald-400';
+                }
+            } catch (e) {
+                box.select();
+                document.execCommand('copy');
+                if (msg) {
+                    msg.textContent = 'コピーしました（フォールバック）';
+                    msg.className = 'text-[11px] text-center mt-2 text-emerald-400';
+                }
+            }
+        }
+
+        function importSaveCode() {
+            const box = document.getElementById('save-code-box');
+            const msg = document.getElementById('save-code-msg');
+            if (!box) return;
+            let raw = box.value.trim();
+            if (!raw) {
+                raw = prompt('セーブコードを貼り付けてください:');
+                if (!raw) return;
+                box.value = raw.trim();
+                raw = raw.trim();
+            }
+            try {
+                if (raw.startsWith('TH2-')) raw = raw.slice(4);
+                const data = decodeSavePayload(raw);
+                if (!data || typeof data !== 'object') throw new Error('invalid');
+                // 安全にマージ
+                if (typeof data.name === 'string' && data.name.trim()) player.name = data.name.trim().slice(0, 20);
+                if (typeof data.level === 'number' && data.level >= 1) player.level = Math.min(99, Math.floor(data.level));
+                if (typeof data.unlockedMapStage === 'number' && data.unlockedMapStage >= 1) {
+                    player.unlockedMapStage = Math.min(WORLD_STAGES.length + 1, Math.floor(data.unlockedMapStage));
+                }
+                if (Array.isArray(data.clearedDojoRanks)) {
+                    const validIds = new Set(DOJO_RANKS.map(r => r.id));
+                    player.clearedDojoRanks = data.clearedDojoRanks.filter(id => validIds.has(id));
+                }
+                if (Array.isArray(data.perfectDojoRanks)) {
+                    const validIds = new Set(DOJO_RANKS.map(r => r.id));
+                    player.perfectDojoRanks = data.perfectDojoRanks.filter(id => validIds.has(id));
+                }
+                if (typeof data.equippedBadge === 'string') {
+                    const validIds = new Set(DOJO_RANKS.map(r => r.id));
+                    if (validIds.has(data.equippedBadge)) player.equippedBadge = data.equippedBadge;
+                }
+                if (typeof data.equippedTitle === 'string') player.equippedTitle = data.equippedTitle;
+                if (Array.isArray(data.unlockedTitles)) player.unlockedTitles = data.unlockedTitles;
+                if (data.stageStars && typeof data.stageStars === 'object') player.stageStars = data.stageStars;
+                if (data.stats && typeof data.stats === 'object') player.stats = { ...player.stats, ...data.stats };
+                if (data.daily && typeof data.daily === 'object') player.daily = data.daily;
+                if (data.clearedExtra) player.clearedExtra = true;
+                refreshSpecialTitles();
+                saveData();
+                updateHeaderUI();
+                renderProfileUI();
+                if (msg) {
+                    msg.textContent = 'セーブデータを読み込みました！';
+                    msg.className = 'text-[11px] text-center mt-2 text-emerald-400';
+                }
+            } catch (e) {
+                if (msg) {
+                    msg.textContent = '無効なセーブコードです';
+                    msg.className = 'text-[11px] text-center mt-2 text-rose-400';
+                }
+            }
+        }
+
+        function updateHeaderUI() {
+            document.getElementById('header-player-name').textContent = player.name;
+            document.getElementById('header-level').textContent = player.level;
+            
+            const currentBadgeObj = DOJO_RANKS.find(r => r.id === player.equippedBadge) || DOJO_RANKS[0];
+            const isPerf = player.perfectDojoRanks.includes(currentBadgeObj.id);
+            document.getElementById('header-badge').textContent = (isPerf ? '🌈 ' : '') + currentBadgeObj.title;
+            const titleObj = SPECIAL_TITLES.find(t => t.id === player.equippedTitle);
+            const titleEl = document.getElementById('header-title');
+            if (titleEl) {
+                titleEl.textContent = titleObj ? ('『' + titleObj.name + '』') : '';
+                titleEl.classList.toggle('hidden', !titleObj);
+            }
+
+            if (document.getElementById('prof-name')) {
+                document.getElementById('prof-name').textContent = player.name;
+                document.getElementById('prof-equipped-badge').textContent = `装着中の段位: [${(isPerf ? '🌈 ' : '') + currentBadgeObj.title}]`;
+                const pt = document.getElementById('prof-equipped-title');
+                if (pt) pt.textContent = titleObj ? `装着中の称号: 『${titleObj.name}』` : '装着中の称号: （なし）';
+            }
+        }
+
+        function changePlayerName() {
+            const newName = prompt('新しいプレイヤー名を入力してください:', player.name);
+            if (newName && newName.trim() !== '') {
+                player.name = newName.trim();
+                saveData();
+                updateHeaderUI();
+            }
+        }
+
+        function switchScreen(screenName) {
+            ['screen-map', 'screen-battle', 'screen-dojo', 'screen-test', 'screen-profile'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                }
+            });
+
+            const target = document.getElementById(`screen-${screenName}`);
+            if (target) {
+                target.classList.remove('hidden');
+                if (screenName === 'test' || screenName === 'battle') {
+                    target.classList.add('flex');
+                }
+            }
+
+            updateHeaderUI();
+            if (screenName === 'map') renderMapUI();
+            if (screenName === 'dojo') renderDojoUI();
+            if (screenName === 'profile') renderProfileUI();
+        }
+
+        function renderMapUI() {
+            const container = document.getElementById('world-map-stage-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const allStages = WORLD_STAGES.map(s => ({...s, isExtra: false}));
+            // 全28クリア後に裏ステージ解放
+            if (player.unlockedMapStage > WORLD_STAGES.length) {
+                EXTRA_STAGES.forEach(s => allStages.push({...s, isExtra: true}));
+            }
+
+            allStages.forEach(stage => {
+                const isExtra = !!stage.isExtra;
+                const isUnlocked = isExtra ? true : stage.id <= player.unlockedMapStage;
+                const isCleared = isExtra ? !!player.clearedExtra : stage.id < player.unlockedMapStage;
+                const stars = (player.stageStars && player.stageStars[stage.id]) || 0;
+                const starStr = stars > 0 ? ('★'.repeat(stars) + '☆'.repeat(3 - stars)) : '☆☆☆';
+
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-2xl border transition-all relative flex flex-col justify-between ${isUnlocked ? (isExtra ? 'bg-indigo-950/80 border-indigo-500/40 hover:border-indigo-400/60 cursor-pointer transform hover:-translate-y-1' : 'bg-slate-900/90 border-slate-800 hover:border-emerald-500/50 cursor-pointer transform hover:-translate-y-1') : 'bg-slate-950/40 border-slate-900 opacity-50 cursor-not-allowed'}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-pixel font-bold text-base ${isExtra ? 'text-indigo-300' : 'text-emerald-400'}">${stage.name}</span>
+                        ${isCleared ? '<span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40">クリア済</span>' : isUnlocked ? '<span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40">挑戦可能</span>' : '<i class="fa-solid fa-lock text-slate-600"></i>'}
+                    </div>
+                    <div class="text-amber-300 text-xs font-mono mb-1 tracking-widest">${starStr}</div>
+                    <div class="flex items-center gap-2 mb-3 text-sm text-slate-300">
+                        <span class="text-2xl">${stage.icon}</span>
+                        <div>
+                            <div class="font-bold text-rose-400">${stage.enemy}</div>
+                            <div class="text-xs text-slate-400 font-mono">敵HP: ${stage.hp}</div>
+                        </div>
+                    </div>
+                    <button class="w-full py-2 rounded-xl text-xs font-bold transition ${isUnlocked ? (isExtra ? 'bg-indigo-500 hover:bg-indigo-400 text-white' : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950') : 'bg-slate-800 text-slate-600 cursor-not-allowed'}" ${!isUnlocked ? 'disabled' : ''}>
+                        ${isUnlocked ? (isExtra ? '裏ステージ出撃' : 'ステージ出撃') : '前のステージをクリア'}
+                    </button>
+                `;
+
+                if (isUnlocked) {
+                    card.onclick = () => startBattle(stage);
+                }
+                container.appendChild(card);
+            });
+        }
+
+        function renderDojoUI() {
+            const container = document.getElementById('dojo-rank-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            DOJO_RANKS.forEach((rank, index) => {
+                const isCleared = player.clearedDojoRanks.includes(rank.id);
+                const isPerfect = player.perfectDojoRanks.includes(rank.id);
+                const isUnlocked = index === 0 || player.clearedDojoRanks.includes(DOJO_RANKS[index - 1].id);
+                const tier = getRankTier(rank.id);
+
+                const card = document.createElement('div');
+                card.className = 'p-4 rounded-2xl border transition-all relative flex flex-col justify-between ' + tierCardClass(tier, isPerfect, isUnlocked, isCleared);
+
+                const titleColor = !isUnlocked ? 'text-slate-600' : isPerfect ? 'text-amber-300' : isCleared ? 'text-amber-300' : 'text-slate-100';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-pixel font-bold text-lg ${titleColor}">
+                            ${isPerfect ? '🌈 ' : ''}${rank.title}
+                        </span>
+                        ${isPerfect ? '<span class="text-xs px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 font-bold border border-pink-500/40">極</span>' : isCleared ? '<span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40">合格</span>' : !isUnlocked ? '<i class="fa-solid fa-lock text-slate-600"></i>' : ''}
+                    </div>
+                    <div class="text-xs text-slate-400 font-mono mb-3">
+                        制限時間: ${rank.time}s | ミス許容: ${rank.missLimit}回
+                    </div>
+                    <button class="w-full py-2 rounded-xl text-xs font-bold transition ${isUnlocked ? 'bg-amber-500 hover:bg-amber-400 text-slate-950' : 'bg-slate-800 text-slate-600 cursor-not-allowed'}" ${!isUnlocked ? 'disabled' : ''}>
+                        ${isUnlocked ? '試験開始' : '前段位の合格が必要'}
+                    </button>
+                `;
+
+                if (isUnlocked) {
+                    card.onclick = () => startDojoTest(rank);
+                }
+                container.appendChild(card);
+            });
+        }
+
+
+        function startBattle(stage) {
+            sfx.init();
+            currentBattle = {
+                stage: stage,
+                enemyMaxHp: stage.hp,
+                enemyCurrentHp: stage.hp,
+                promptIndex: 0,
+                nodes: [],
+                nodeIndex: 0,
+                patternIndex: 0,
+                charIndexInPattern: 0,
+                typedLog: '',
+                misses: 0,
+                keys: 0,
+                isExtra: !!stage.isExtra
+            };
+
+            document.getElementById('enemy-icon').textContent = stage.icon;
+            document.getElementById('enemy-name').textContent = stage.enemy;
+            document.getElementById('battle-wave-curr').textContent = stage.id;
+            document.getElementById('battle-wave-max').textContent = WORLD_STAGES.length;
+
+            switchScreen('battle');
+            loadNextBattlePrompt();
+        }
+
+        function loadNextBattlePrompt() {
+            if (currentBattle.promptIndex >= currentBattle.stage.prompts.length) {
+                currentBattle.promptIndex = 0;
+            }
+            const prompt = currentBattle.stage.prompts[currentBattle.promptIndex];
+            currentBattle.nodes = convertKanaToNodes(prompt.kana);
+            currentBattle.nodeIndex = 0;
+            currentBattle.patternIndex = 0;
+            currentBattle.charIndexInPattern = 0;
+            currentBattle.typedLog = '';
+
+            document.getElementById('battle-kanji').textContent = prompt.kanji;
+            document.getElementById('battle-kana').textContent = prompt.kana;
+            updateBattleUI();
+        }
+
+        function updateBattleUI() {
+            let typedText = currentBattle.typedLog;
+            let currentText = '';
+            let untypedText = '';
+
+            if (currentBattle.nodeIndex < currentBattle.nodes.length) {
+                const node = currentBattle.nodes[currentBattle.nodeIndex];
+                const activePattern = node.patterns[currentBattle.patternIndex] || node.patterns[0];
+                currentText = activePattern[currentBattle.charIndexInPattern] || '';
+                untypedText = activePattern.slice(currentBattle.charIndexInPattern + 1);
+
+                for (let i = currentBattle.nodeIndex + 1; i < currentBattle.nodes.length; i++) {
+                    untypedText += currentBattle.nodes[i].patterns[0];
+                }
+            }
+
+            document.getElementById('battle-typed').textContent = typedText;
+            document.getElementById('battle-current').textContent = currentText;
+            document.getElementById('battle-untyped').textContent = untypedText;
+
+            document.getElementById('enemy-hp-text').textContent = `${currentBattle.enemyCurrentHp} / ${currentBattle.enemyMaxHp}`;
+            const hpPct = Math.max(0, (currentBattle.enemyCurrentHp / currentBattle.enemyMaxHp) * 100);
+            document.getElementById('enemy-hp-bar').style.width = `${hpPct}%`;
+        }
+
+        function handleBattleInput(key) {
+            if (!currentBattle || currentBattle.nodeIndex >= currentBattle.nodes.length) return;
+
+            const node = currentBattle.nodes[currentBattle.nodeIndex];
+            let matchedIdx = -1;
+
+            const currPattern = node.patterns[currentBattle.patternIndex];
+            if (currPattern && currPattern[currentBattle.charIndexInPattern] === key) {
+                matchedIdx = currentBattle.patternIndex;
+            } else {
+                for (let p = 0; p < node.patterns.length; p++) {
+                    const pat = node.patterns[p];
+                    if (pat.startsWith(currPattern.slice(0, currentBattle.charIndexInPattern) + key)) {
+                        matchedIdx = p;
+                        break;
+                    }
+                }
+            }
+
+            if (matchedIdx !== -1) {
+                sfx.playKey();
+                currentBattle.keys++;
+                if (player.stats) player.stats.totalKeys++;
+                currentBattle.patternIndex = matchedIdx;
+                const activePattern = node.patterns[currentBattle.patternIndex];
+                currentBattle.typedLog += key;
+                currentBattle.charIndexInPattern++;
+
+                if (currentBattle.charIndexInPattern >= activePattern.length) {
+                    currentBattle.nodeIndex++;
+                    currentBattle.patternIndex = 0;
+                    currentBattle.charIndexInPattern = 0;
+                }
+
+                currentBattle.enemyCurrentHp -= 12;
+
+                if (currentBattle.enemyCurrentHp <= 0) {
+                    currentBattle.enemyCurrentHp = 0;
+                    updateBattleUI();
+                    winBattle();
+                } else if (currentBattle.nodeIndex >= currentBattle.nodes.length) {
+                    currentBattle.promptIndex++;
+                    loadNextBattlePrompt();
+                } else {
+                    updateBattleUI();
+                }
+            } else {
+                sfx.playError();
+                currentBattle.misses++;
+                if (player.stats) player.stats.totalMisses++;
+            }
+        }
+
+        function winBattle() {
+            sfx.playFanfare();
+            confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+
+            if (player.stats) player.stats.battleClears++;
+
+            // 星評価: 0ミス=3 / 1-2ミス=2 / それ以上=1
+            const sid = currentBattle.stage.id;
+            let stars = 1;
+            if (currentBattle.misses === 0) stars = 3;
+            else if (currentBattle.misses <= 2) stars = 2;
+            if (!player.stageStars) player.stageStars = {};
+            const prev = player.stageStars[sid] || 0;
+            if (stars > prev) player.stageStars[sid] = stars;
+
+            if (currentBattle.isExtra) {
+                player.clearedExtra = true;
+            } else if (currentBattle.stage.id === player.unlockedMapStage && player.unlockedMapStage < WORLD_STAGES.length) {
+                player.unlockedMapStage++;
+                player.level += 1;
+            } else if (currentBattle.stage.id === player.unlockedMapStage && player.unlockedMapStage >= WORLD_STAGES.length) {
+                // 最終ステージ突破後も level 加算は1回だけ相当に unlocked を進める
+                player.unlockedMapStage = WORLD_STAGES.length + 1;
+                player.level += 1;
+            }
+
+            refreshSpecialTitles();
+            saveData();
+
+            setTimeout(() => {
+                switchScreen('map');
+            }, 1200);
+        }
+
+        function startDojoTest(rank) {
+            pendingDojoRank = rank;
+            waitingDojoStartKey = false;
+            document.getElementById('dojo-confirm-title').textContent = rank.title;
+            document.getElementById('modal-dojo-confirm').classList.remove('hidden');
+        }
+
+        function confirmDojoYes() {
+            document.getElementById('modal-dojo-confirm').classList.add('hidden');
+            if (!pendingDojoRank) return;
+            document.getElementById('dojo-ready-rank').textContent = pendingDojoRank.title;
+            document.getElementById('modal-dojo-ready').classList.remove('hidden');
+            waitingDojoStartKey = true;
+            sfx.init();
+        }
+
+        function confirmDojoNo() {
+            document.getElementById('modal-dojo-confirm').classList.add('hidden');
+            pendingDojoRank = null;
+            waitingDojoStartKey = false;
+        }
+
+        function cancelDojoReady() {
+            document.getElementById('modal-dojo-ready').classList.add('hidden');
+            pendingDojoRank = null;
+            waitingDojoStartKey = false;
+        }
+
+        function beginDojoTest() {
+            const rank = pendingDojoRank;
+            if (!rank) return;
+            const isDaily = !!rank.isDaily;
+            waitingDojoStartKey = false;
+            pendingDojoRank = null;
+            document.getElementById('modal-dojo-ready').classList.add('hidden');
+
+            sfx.init();
+            currentDojoTest = {
+                rank: rank,
+                promptIndex: 0,
+                timeRemaining: rank.time,
+                missesLeft: rank.missLimit,
+                totalMisses: 0,
+                totalKeys: 0,
+                correctKeys: 0,
+                nodes: [],
+                nodeIndex: 0,
+                patternIndex: 0,
+                charIndexInPattern: 0,
+                typedLog: '',
+                isDaily: isDaily
+            };
+
+            document.getElementById('test-rank-title').textContent = `${rank.title} 試験`;
+            document.getElementById('test-miss-left').textContent = rank.missLimit;
+            document.getElementById('test-miss-max').textContent = rank.missLimit;
+            document.getElementById('test-timer').textContent = `${rank.time}s`;
+            document.getElementById('test-acc').textContent = '100%';
+            updateMissBar();
+
+            switchScreen('test');
+            loadNextTestPrompt();
+
+            clearInterval(testTimerId);
+            testTimerId = setInterval(() => {
+                currentDojoTest.timeRemaining--;
+                document.getElementById('test-timer').textContent = `${currentDojoTest.timeRemaining}s`;
+                if (currentDojoTest.timeRemaining <= 0) {
+                    failDojoTest();
+                }
+            }, 1000);
+        }
+
+        function loadNextTestPrompt() {
+            const prompt = currentDojoTest.rank.prompts[currentDojoTest.promptIndex];
+            currentDojoTest.nodes = convertKanaToNodes(prompt.kana);
+            currentDojoTest.nodeIndex = 0;
+            currentDojoTest.patternIndex = 0;
+            currentDojoTest.charIndexInPattern = 0;
+            currentDojoTest.typedLog = '';
+
+            document.getElementById('test-kanji').textContent = prompt.kanji;
+            document.getElementById('test-kana').textContent = prompt.kana;
+            document.getElementById('test-progress').textContent = `${currentDojoTest.promptIndex + 1} / ${currentDojoTest.rank.prompts.length}`;
+
+            renderTestRomaji();
+        }
+
+        function renderTestRomaji() {
+            let typedText = currentDojoTest.typedLog;
+            let currentText = '';
+            let untypedText = '';
+
+            if (currentDojoTest.nodeIndex < currentDojoTest.nodes.length) {
+                const node = currentDojoTest.nodes[currentDojoTest.nodeIndex];
+                const activePattern = node.patterns[currentDojoTest.patternIndex] || node.patterns[0];
+                currentText = activePattern[currentDojoTest.charIndexInPattern] || '';
+                untypedText = activePattern.slice(currentDojoTest.charIndexInPattern + 1);
+
+                for (let i = currentDojoTest.nodeIndex + 1; i < currentDojoTest.nodes.length; i++) {
+                    untypedText += currentDojoTest.nodes[i].patterns[0];
+                }
+            }
+
+            document.getElementById('typed-part').textContent = typedText;
+            document.getElementById('current-part').textContent = currentText;
+            document.getElementById('untyped-part').textContent = untypedText;
+        }
+
+        function updateMissBar() {
+            if (!currentDojoTest) return;
+            const max = currentDojoTest.rank.missLimit || 1;
+            // missesLeft は「残り許容」。減った分がミス
+            const left = Math.max(0, currentDojoTest.missesLeft);
+            const pct = Math.max(0, Math.min(100, (left / max) * 100));
+            const bar = document.getElementById('test-miss-bar');
+            const label = document.getElementById('test-miss-bar-label');
+            if (!bar) return;
+            bar.style.width = pct + '%';
+            if (label) label.textContent = Math.round(pct) + '%';
+            bar.classList.remove('warn', 'danger');
+            if (pct <= 25) bar.classList.add('danger');
+            else if (pct <= 50) bar.classList.add('warn');
+        }
+
+        function handleTestInput(key) {
+            if (!currentDojoTest || currentDojoTest.nodeIndex >= currentDojoTest.nodes.length) return;
+
+            const node = currentDojoTest.nodes[currentDojoTest.nodeIndex];
+            let matchedIdx = -1;
+
+            const currPattern = node.patterns[currentDojoTest.patternIndex];
+            if (currPattern && currPattern[currentDojoTest.charIndexInPattern] === key) {
+                matchedIdx = currentDojoTest.patternIndex;
+            } else {
+                for (let p = 0; p < node.patterns.length; p++) {
+                    const pat = node.patterns[p];
+                    if (pat.startsWith(currPattern.slice(0, currentDojoTest.charIndexInPattern) + key)) {
+                        matchedIdx = p;
+                        break;
+                    }
+                }
+            }
+
+            if (matchedIdx !== -1) {
+                sfx.playKey();
+                currentDojoTest.totalKeys++;
+                currentDojoTest.correctKeys++;
+                if (player.stats) player.stats.totalKeys++;
+                currentDojoTest.patternIndex = matchedIdx;
+                const activePattern = node.patterns[currentDojoTest.patternIndex];
+                currentDojoTest.typedLog += key;
+                currentDojoTest.charIndexInPattern++;
+
+                if (currentDojoTest.charIndexInPattern >= activePattern.length) {
+                    currentDojoTest.nodeIndex++;
+                    currentDojoTest.patternIndex = 0;
+                    currentDojoTest.charIndexInPattern = 0;
+                }
+
+                // 正確性更新
+                const acc = currentDojoTest.totalKeys === 0 ? 100 : Math.round((currentDojoTest.correctKeys / currentDojoTest.totalKeys) * 100);
+                document.getElementById('test-acc').textContent = acc + '%';
+
+                if (currentDojoTest.nodeIndex >= currentDojoTest.nodes.length) {
+                    currentDojoTest.promptIndex++;
+                    if (currentDojoTest.promptIndex >= currentDojoTest.rank.prompts.length) {
+                        passDojoTest();
+                    } else {
+                        loadNextTestPrompt();
+                    }
+                } else {
+                    renderTestRomaji();
+                }
+            } else {
+                sfx.playError();
+                currentDojoTest.totalKeys++;
+                currentDojoTest.totalMisses++;
+                currentDojoTest.missesLeft--;
+                if (player.stats) player.stats.totalMisses++;
+                document.getElementById('test-miss-left').textContent = Math.max(0, currentDojoTest.missesLeft);
+                updateMissBar();
+
+                const acc = currentDojoTest.totalKeys === 0 ? 100 : Math.round((currentDojoTest.correctKeys / currentDojoTest.totalKeys) * 100);
+                document.getElementById('test-acc').textContent = acc + '%';
+
+                if (currentDojoTest.missesLeft < 0) {
+                    failDojoTest();
+                }
+            }
+        }
+
+        let lastDojoResult = null;
+        let resultGaugeTimer = null;
+
+        function getRankTier(rankId) {
+            const kyu = ['10k','9k','8k','7k','6k','5k','4k','3k','2k','1k'];
+            const zenhan = ['1d','2d','3d','4d','5d'];
+            const kouhan = ['6d','7d','8d','9d','10d'];
+            if (kyu.includes(rankId)) return 'kyu';
+            if (zenhan.includes(rankId)) return 'zenhan';
+            if (kouhan.includes(rankId)) return 'kouhan';
+            if (rankId === 'kuro') return 'kuro';
+            if (rankId === 'meijin') return 'meijin';
+            if (rankId === 'chojin') return 'chojin';
+            if (rankId === 'tatsujin') return 'tatsujin';
+            if (rankId === 'god') return 'god';
+            return 'kyu';
+        }
+
+        function tierCardClass(tier, isPerfect, isUnlocked, isCleared) {
+            if (!isUnlocked) return 'bg-slate-950/40 border-slate-900 opacity-50 cursor-not-allowed';
+            if (isPerfect) return 'rainbow-card cursor-pointer transform hover:-translate-y-1 card-shine';
+            const base = {
+                kyu: 'tier-kyu',
+                zenhan: 'tier-zenhan',
+                kouhan: 'tier-kouhan',
+                kuro: 'tier-kuro card-shine',
+                meijin: 'tier-meijin card-shine',
+                chojin: 'tier-chojin card-shine',
+                tatsujin: 'tier-tatsujin card-shine',
+                god: 'tier-god card-shine'
+            }[tier] || 'tier-kyu';
+            const cursor = ' cursor-pointer transform hover:-translate-y-1';
+            if (isCleared) return base + cursor + ' ring-1 ring-amber-400/30';
+            return base + cursor;
+        }
+
+        function passDojoTest() {
+            clearInterval(testTimerId);
+            sfx.playFanfare();
+
+            const isPerfect = currentDojoTest.totalMisses === 0;
+            const rankId = currentDojoTest.rank.id;
+            const rankTitle = currentDojoTest.rank.title;
+            const isDailyRun = !!currentDojoTest.isDaily;
+            const wasFirstClear = !isDailyRun && !player.clearedDojoRanks.includes(rankId);
+            const wasFirstPerfect = !isDailyRun && isPerfect && !player.perfectDojoRanks.includes(rankId);
+
+            if (wasFirstClear) player.clearedDojoRanks.push(rankId);
+            if (wasFirstPerfect) player.perfectDojoRanks.push(rankId);
+
+            if (player.stats) {
+                player.stats.dojoClears++;
+                if (isPerfect) player.stats.dojoPerfects++;
+            }
+
+            // デイリー試験の場合
+            if (currentDojoTest.isDaily) {
+                const acc = currentDojoTest.totalKeys === 0 ? 100 : Math.round((currentDojoTest.correctKeys / currentDojoTest.totalKeys) * 100);
+                if (!player.daily || player.daily.date !== todayStr()) {
+                    player.daily = { date: todayStr(), bestAcc: 0, bestMiss: 999, cleared: false };
+                }
+                player.daily.cleared = true;
+                if (acc > (player.daily.bestAcc || 0)) player.daily.bestAcc = acc;
+                if (currentDojoTest.totalMisses < (player.daily.bestMiss ?? 999)) player.daily.bestMiss = currentDojoTest.totalMisses;
+                if (player.stats) player.stats.dailyPlays++;
+            }
+
+            // 初合格・初虹なら称号を自動装着
+            if (wasFirstClear || wasFirstPerfect) {
+                player.equippedBadge = rankId;
+            }
+            refreshSpecialTitles();
+            saveData();
+
+            const timeLeft = Math.max(0, currentDojoTest.timeRemaining);
+            const timeLimit = currentDojoTest.rank.time;
+            const totalKeys = currentDojoTest.totalKeys || 0;
+            const correctKeys = currentDojoTest.correctKeys || 0;
+            const acc = totalKeys === 0 ? 100 : Math.round((correctKeys / totalKeys) * 100);
+
+            lastDojoResult = {
+                rankId, rankTitle, isPerfect, wasFirstClear, wasFirstPerfect,
+                timeLeft, timeLimit, misses: currentDojoTest.totalMisses, acc
+            };
+
+            // 合格カットイン
+            const modal = document.getElementById('modal-pass-cutin');
+            const go = document.getElementById('cutin-go');
+            const kaku = document.getElementById('cutin-kaku');
+            const perfBadge = document.getElementById('cutin-perfect-badge');
+
+            modal.classList.remove('hidden');
+            go.className = "text-amber-400 opacity-0 transform scale-50 transition-all duration-300";
+            kaku.className = "text-amber-400 opacity-0 transform scale-50 transition-all duration-300";
+            perfBadge.classList.add('hidden');
+
+            setTimeout(() => { go.className = "text-amber-400 opacity-100 transform scale-100 transition-all duration-300"; }, 100);
+            setTimeout(() => { kaku.className = "text-amber-400 opacity-100 transform scale-100 transition-all duration-300"; }, 500);
+
+            if (isPerfect) {
+                setTimeout(() => { perfBadge.classList.remove('hidden'); confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); }, 800);
+            }
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                showDojoResult();
+            }, 2300);
+        }
+
+        function showDojoResult() {
+            if (!lastDojoResult) return;
+            const r = lastDojoResult;
+            const failed = !!r.failed;
+
+            if (failed) {
+                document.getElementById('result-rank-title').textContent = r.rankTitle + ' 不合格';
+                document.getElementById('result-rank-title').className = 'text-xl font-black font-pixel text-rose-400';
+                document.getElementById('result-icon').textContent = '💔';
+                document.getElementById('result-perfect-label').textContent = 'また挑戦しよう！';
+                document.getElementById('result-perfect-label').className = 'text-xs mt-1 text-slate-400';
+            } else {
+                document.getElementById('result-rank-title').textContent = r.rankTitle + (r.isPerfect ? ' 🌈極合格' : ' 合格');
+                document.getElementById('result-rank-title').className = 'text-xl font-black font-pixel text-amber-400';
+                document.getElementById('result-icon').textContent = r.isPerfect ? '🌈' : '🏆';
+                document.getElementById('result-perfect-label').textContent = r.isPerfect ? '0ミス フルコンボ達成！' : '';
+                document.getElementById('result-perfect-label').className = r.isPerfect
+                    ? 'text-xs mt-1 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 font-bold'
+                    : 'text-xs mt-1 text-slate-500';
+            }
+
+            document.getElementById('result-time-left').textContent = r.timeLeft + 's';
+            document.getElementById('result-time-limit').textContent = r.timeLimit + 's';
+            document.getElementById('result-misses').textContent = r.misses;
+            document.getElementById('result-acc').textContent = r.acc + '%';
+
+            const fill = document.getElementById('result-gauge-fill');
+            const label = document.getElementById('result-gauge-label');
+            fill.style.width = '100%';
+            label.textContent = '100%';
+
+            clearInterval(resultGaugeTimer);
+            if (!failed && r.isPerfect) {
+                fill.className = 'result-gauge-fill rainbow';
+            } else {
+                fill.className = 'result-gauge-fill';
+                const start = performance.now();
+                const duration = failed ? 2800 : 4000;
+                const targetPct = failed ? 0 : (r.timeLimit > 0 ? Math.max(8, (r.timeLeft / r.timeLimit) * 100) : 8);
+                const timeEl = document.getElementById('result-time-left');
+                resultGaugeTimer = setInterval(() => {
+                    const t = Math.min(1, (performance.now() - start) / duration);
+                    const pct = 100 - (100 - targetPct) * t;
+                    fill.style.width = pct + '%';
+                    label.textContent = Math.round(pct) + '%';
+                    if (!failed) {
+                        const shown = Math.round(r.timeLimit + (r.timeLeft - r.timeLimit) * t);
+                        timeEl.textContent = Math.max(r.timeLeft, shown) + 's';
+                    } else {
+                        // 不合格は制限時間が0に向かって減る演出
+                        const shown = Math.round(r.timeLimit * (1 - t));
+                        timeEl.textContent = Math.max(0, shown) + 's';
+                    }
+                    if (t >= 1) {
+                        timeEl.textContent = (failed ? 0 : r.timeLeft) + 's';
+                        clearInterval(resultGaugeTimer);
+                    }
+                }, 50);
+            }
+
+            document.getElementById('modal-dojo-result').classList.remove('hidden');
+        }
+
+        function closeDojoResult() {
+            clearInterval(resultGaugeTimer);
+            document.getElementById('modal-dojo-result').classList.add('hidden');
+            const r = lastDojoResult;
+            if (r && (r.wasFirstClear || r.wasFirstPerfect)) {
+                showDojoCelebrate(r);
+            } else {
+                lastDojoResult = null;
+                switchScreen('dojo');
+            }
+        }
+
+        function showDojoCelebrate(r) {
+            const sub = r.wasFirstPerfect ? '🌈 初の極（0ミス）合格！' : '初合格！';
+            document.getElementById('celebrate-sub').textContent = sub;
+            document.getElementById('celebrate-msg').textContent = `おめでとう！君は${r.rankTitle}だ！`;
+            document.getElementById('celebrate-card-title').textContent = (r.isPerfect ? '🌈 ' : '') + r.rankTitle;
+            document.getElementById('celebrate-card-icon').textContent = r.isPerfect ? '🌈' : '🏅';
+
+            const card = document.getElementById('celebrate-card');
+            const tier = getRankTier(r.rankId);
+            const tierCls = {
+                kyu: 'tier-kyu', zenhan: 'tier-zenhan', kouhan: 'tier-kouhan',
+                kuro: 'tier-kuro', meijin: 'tier-meijin', chojin: 'tier-chojin',
+                tatsujin: 'tier-tatsujin', god: 'tier-god'
+            }[tier] || 'tier-kyu';
+            card.className = `inline-block p-5 rounded-2xl min-w-[140px] card-shine badge-glow-pulse mb-6 ${r.isPerfect ? 'rainbow-card' : tierCls}`;
+
+            confetti({ particleCount: 120, spread: 70, origin: { y: 0.55 } });
+            document.getElementById('modal-dojo-celebrate').classList.remove('hidden');
+            updateHeaderUI();
+        }
+
+        function closeDojoCelebrate() {
+            document.getElementById('modal-dojo-celebrate').classList.add('hidden');
+            lastDojoResult = null;
+            switchScreen('dojo');
+        }
+
+        function failDojoTest() {
+            clearInterval(testTimerId);
+            sfx.playFailSound();
+
+            if (currentDojoTest) {
+                const rank = currentDojoTest.rank;
+                const timeLeft = Math.max(0, currentDojoTest.timeRemaining);
+                const totalKeys = currentDojoTest.totalKeys || 0;
+                const correctKeys = currentDojoTest.correctKeys || 0;
+                const acc = totalKeys === 0 ? 0 : Math.round((correctKeys / totalKeys) * 100);
+                lastDojoResult = {
+                    rankId: rank.id,
+                    rankTitle: rank.title,
+                    isPerfect: false,
+                    wasFirstClear: false,
+                    wasFirstPerfect: false,
+                    failed: true,
+                    timeLeft,
+                    timeLimit: rank.time,
+                    misses: currentDojoTest.totalMisses,
+                    acc
+                };
+            }
+
+            const modal = document.getElementById('modal-fail-cutin');
+            const fu = document.getElementById('cutin-fu');
+            const go = document.getElementById('cutin-fail-go');
+            const kaku = document.getElementById('cutin-fail-kaku');
+
+            modal.classList.remove('hidden');
+            fu.className = "opacity-0 transform scale-50 transition-all duration-300";
+            go.className = "opacity-0 transform scale-50 transition-all duration-300";
+            kaku.className = "opacity-0 transform scale-50 transition-all duration-300";
+
+            setTimeout(() => { fu.className = "opacity-100 transform scale-100 transition-all duration-300"; }, 100);
+            setTimeout(() => { go.className = "opacity-100 transform scale-100 transition-all duration-300"; }, 400);
+            setTimeout(() => { kaku.className = "opacity-100 transform scale-100 transition-all duration-300"; }, 700);
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                showDojoResult();
+            }, 2200);
+        }
+
+        function renderProfileUI() {
+            const container = document.getElementById('profile-badge-list');
+            if (container) {
+                container.innerHTML = '';
+                DOJO_RANKS.forEach(rank => {
+                    const isCleared = player.clearedDojoRanks.includes(rank.id);
+                    const isPerfect = player.perfectDojoRanks.includes(rank.id);
+                    const isEquipped = player.equippedBadge === rank.id;
+                    if (!isCleared && !isPerfect) return;
+
+                    const tier = getRankTier(rank.id);
+                    const tierCls = {
+                        kyu: 'tier-kyu', zenhan: 'tier-zenhan', kouhan: 'tier-kouhan',
+                        kuro: 'tier-kuro', meijin: 'tier-meijin', chojin: 'tier-chojin',
+                        tatsujin: 'tier-tatsujin', god: 'tier-god'
+                    }[tier] || 'tier-kyu';
+
+                    const badge = document.createElement('div');
+                    let cls = 'p-3 rounded-xl border text-center cursor-pointer transition card-shine ';
+                    if (isEquipped) cls += 'ring-2 ring-purple-400 scale-105 ';
+                    if (isPerfect) cls += 'rainbow-card';
+                    else cls += tierCls;
+                    badge.className = cls;
+                    badge.innerHTML = `
+                        <div class="text-xs ${isPerfect ? 'text-amber-300 font-bold' : 'text-slate-100 font-bold'}">
+                            ${isPerfect ? '🌈 ' : ''}${rank.title}
+                        </div>
+                        <div class="text-[10px] text-purple-300 mt-1">${isEquipped ? '装着中' : 'タップで装着'}</div>
+                    `;
+                    badge.onclick = () => {
+                        player.equippedBadge = rank.id;
+                        saveData();
+                        updateHeaderUI();
+                        renderProfileUI();
+                    };
+                    container.appendChild(badge);
+                });
+            }
+
+            // スタッツ表示
+            const st = player.stats || {};
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            set('stat-keys', st.totalKeys || 0);
+            set('stat-misses', st.totalMisses || 0);
+            set('stat-battles', st.battleClears || 0);
+            set('stat-dojo', st.dojoClears || 0);
+            set('stat-perfect', st.dojoPerfects || 0);
+            const starSum = Object.values(player.stageStars || {}).reduce((a, b) => a + b, 0);
+            set('stat-stars', starSum);
+
+            // 特別称号リスト
+            const titleBox = document.getElementById('profile-title-list');
+            if (titleBox) {
+                titleBox.innerHTML = '';
+                SPECIAL_TITLES.forEach(t => {
+                    const unlocked = (player.unlockedTitles || []).includes(t.id);
+                    const equipped = player.equippedTitle === t.id;
+                    const el = document.createElement('div');
+                    el.className = `p-3 rounded-xl border text-left transition ${unlocked ? (equipped ? 'bg-purple-500/30 border-purple-400 cursor-pointer' : 'bg-slate-900 border-slate-700 cursor-pointer hover:border-purple-400/50') : 'bg-slate-950/50 border-slate-900 opacity-50'}`;
+                    el.innerHTML = `
+                        <div class="text-xs font-bold ${unlocked ? 'text-purple-200' : 'text-slate-600'}">${unlocked ? '『' + t.name + '』' : '？？？'}</div>
+                        <div class="text-[10px] text-slate-400 mt-1">${t.desc}</div>
+                        <div class="text-[10px] mt-1 ${equipped ? 'text-purple-300' : 'text-slate-500'}">${!unlocked ? '未解除' : equipped ? '装着中' : 'タップで装着'}</div>
+                    `;
+                    if (unlocked) {
+                        el.onclick = () => {
+                            player.equippedTitle = equipped ? '' : t.id;
+                            saveData();
+                            updateHeaderUI();
+                            renderProfileUI();
+                        };
+                    }
+                    titleBox.appendChild(el);
+                });
+            }
+        }
+
+        function startDailyChallenge() {
+            sfx.init();
+            if (!player.daily || player.daily.date !== todayStr()) {
+                player.daily = { date: todayStr(), bestAcc: 0, bestMiss: 999, cleared: false };
+                saveData();
+            }
+            const prompts = getDailyPrompts();
+            const rank = {
+                id: 'daily',
+                title: 'デイリー',
+                time: 45,
+                missLimit: 8,
+                prompts
+            };
+            // 確認なしで Space 待ちへ（既存フロー流用）
+            pendingDojoRank = rank;
+            pendingDojoRank.isDaily = true;
+            document.getElementById('dojo-ready-rank').textContent = 'デイリー挑戦';
+            document.getElementById('modal-dojo-ready').classList.remove('hidden');
+            waitingDojoStartKey = true;
+        }
+
+        window.addEventListener('keydown', (e) => {
+            // 試験開始待ち: Space で開始
+            if (waitingDojoStartKey && (e.code === 'Space' || e.key === ' ')) {
+                e.preventDefault();
+                beginDojoTest();
+                return;
+            }
+            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                const activeTest = !document.getElementById('screen-test').classList.contains('hidden');
+                const activeBattle = !document.getElementById('screen-battle').classList.contains('hidden');
+                if (activeTest) {
+                    handleTestInput(e.key.toLowerCase());
+                } else if (activeBattle) {
+                    handleBattleInput(e.key.toLowerCase());
+                }
+            }
+        });
+
+        window.onload = () => {
+            loadSavedData();
+            switchScreen('map');
+        };
+    </script>
+</body>
+</html>
